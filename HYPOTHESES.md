@@ -154,3 +154,34 @@ Window ledger update: Databento 2024-07→2026-07 evaluations used = 4
 now — treat any further hypothesis on it with elevated skepticism; prefer
 NEW data (longer history, different instrument, or different asset class)
 for the next registration.
+
+---
+
+## E4 — REGISTERED 2026-07-15 (pre-test): Slow BTC trend, long-only spot
+
+Economic rationale: slow-moving capital and retail underreaction make
+multi-week crypto trends persist; the documented value is DOWNSIDE
+AVOIDANCE at similar return, not excess return (Han/Kang/Ryu SSRN 4675565:
+net Sharpe 1.51 vs 0.85 buy-hold at 15 bps costs, 2014–2023; Kang/Ryu
+Risk Mgmt 2026: slow signals beat fast). Decay documented post-ETF
+(Rosen/Wang 2025) — registered prior: effect weakened in recent years,
+halves gate is the live test of that.
+
+Rules (ALL fixed before any run):
+- Asset: BTC-USD only. Daily bars, 2014-01-01 → present. Source: Yahoo
+  chart API daily closes, spot-checked vs a second source on overlap.
+- Signal at each daily close: LONG 100% if trailing 28-day close-to-close
+  return > 0, else FLAT (cash, 0% yield assumed). Position changes fill at
+  NEXT daily open with 10 bps adverse slippage + 0.35% fee per side.
+- Trade = one round trip (entry flip → exit flip). No leverage, no shorts.
+- Registered plateau parameter: lookback 21 / 28 / 35 days — all three
+  must be net positive at trade level.
+- Gates (registered adaptation for spot asset — barrier-MC replaced):
+  n ≥ 100 round trips; PF > 1.3; both sample halves positive; plateau
+  all > 0; bootstrap (10k paths, daily-return resample, full sample
+  length) P(maxDD > 40%) < 10%; AND annualized Sharpe (net) ≥ buy-hold
+  Sharpe on the identical window.
+- Kill criterion: any gate fails → E4 falsified on this window. No
+  retune, no ETH fallback (ETH would be a separate registration).
+
+Window ledger: BTC daily 2014→2026 is a FRESH window; evaluation #1.
