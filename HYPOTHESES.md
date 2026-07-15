@@ -85,3 +85,25 @@ Rules (ALL fixed before any run):
 ---
 
 ## RESULTS LOG (append-only; passes AND failures)
+
+### 2026-07-15 — E1 evaluation (single registered run; log: logs/phase2_e1e2_2026-07-15.log)
+E1 VERDICT: **FAIL** — n=183, WR 43.2%, PF 1.12 (gate >1.3), total $2,286/ct,
+maxDD $-3,355/ct, half1 $3,226 / half2 $-940 (half2 gate FAIL), plateau
+OR10 $-204 / OR15 $2,286 / OR20 $1,146 (OR10 negative, gate FAIL),
+barrier-MC P(blow) 50.9% (gate FAIL). Failed 4/6 gates.
+Note for the record: the only hypothesis so far with positive total and a
+strongly positive first half — but the edge decays in the recent half,
+which is precisely the half live capital would trade. Kill criterion
+applies: E1 is falsified on this window. No retune.
+
+### 2026-07-15 — E2 evaluation (single registered run; same log)
+E2 VERDICT: **FAIL** — n=818, WR 38.4%, PF 0.79 (gate >1.3), total
+$-8,656/ct, maxDD $-9,852/ct, half1 $-2,209 / half2 $-6,446 (both FAIL),
+plateau z1.75 $-7,650 / z2.00 $-8,656 / z2.25 $-8,429 (all negative, FAIL),
+barrier-MC P(blow) 87.5% (gate FAIL). Failed 5/6 gates. Decisively dead:
+VWAP stretches on this window continued rather than reverted.
+
+Window ledger update: Databento 2024-07→2026-07 evaluations used = 3
+(baseline, E1, E2). Any further hypothesis on this window must be
+registered with a mechanism materially different from always-on momentum,
+event-conditioned momentum (ORB), and VWAP reversion.
