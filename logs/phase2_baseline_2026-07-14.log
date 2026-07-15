@@ -1,0 +1,64 @@
+== [1/4] loader unit tests ==
+PASS float_flavor_index
+PASS fixedpoint_flavor_column
+PASS us_epoch_detected
+PASS multi_symbol_refused
+PASS gap_bars_dropped
+
+ALL LOADER TESTS PASS
+== [2/4] parquet spec verification (task 1) ==
+5m bars: 143,874 | span: 2024-06-30 20:00:00-04:00 -> 2026-07-13 19:55:00-04:00
+coverage OK vs requested 2024-07-01 .. 2026-07-14
+== [3/4] signal suite on the Databento loader (task 2 gate) ==
+data source: databento parquet (data/databento_1m.parquet)
+PASS signal_domain (values seen: ['EXIT', 'HOLD', 'LONG', 'SHORT'] )
+PASS no_lookahead
+PASS flatten_enforced
+PASS bands_sane
+PASS empty_data (returned without crash)
+
+ALL TESTS PASS
+== [4/4] baseline + plateau + barrier MC vs gates (task 3) ==
+== DATA AUDIT ==
+5m bars total 143,874  RTH bars 40,134  days with RTH data 524
+span 2024-06-30 20:00:00-04:00 -> 2026-07-13 19:55:00-04:00
+RTH bars/day: median 78  min 42  max 78  days<60 bars (skipped): 21
+overnight |gap| (n=523): median 0.388%  p95 1.785%
+top 6 gap days (roll caveat: MNQ.v.0 is volume-rolled; check vs quarterly roll windows Mar/Jun/Sep/Dec):
+  2024-08-05  5.38%
+  2025-04-03  4.17%
+  2025-05-12  3.88%
+  2025-01-27  3.58%
+  2025-04-07  3.47%
+  2026-04-08  3.41%
+
+== YAHOO OVERLAP CROSS-CHECK (data QA only — no tuning) ==
+overlap bars n=3,744  |close diff| in ticks: median 1.0  p95 8.0  max 1274.0
+timestamp-convention diagnostic: -1 bar shift median 74.0 ticks (n=3,743) — must be far worse than aligned, else ts convention is off
+FLAG: 355 of 3744 bars differ by >4 ticks; worst:
+  2026-06-16 15:55:00-04:00  1274 ticks
+  2026-06-16 15:25:00-04:00  1273 ticks
+  2026-06-16 15:50:00-04:00  1272 ticks
+  2026-06-16 15:45:00-04:00  1272 ticks
+  2026-06-16 15:40:00-04:00  1268 ticks
+
+== BASELINE — Noise-Area 5m Databento, lookback 14, 489 tradeable days ==
+trades 512  WR 37.3%  PF 0.98  avg $-1.51/ct  W $219 L $133
+total $-773/ct  maxDD $-7,466/ct  half1 $-867  half2 $94
+
+== Parameter plateau (Tier A lookback, same window) ==
+lookback 10: trades  526 (493 days)  total $    -1,591/ct  PF 0.96
+lookback 14: trades  512 (489 days)  total $      -773/ct  PF 0.98
+lookback 20: trades  511 (483 days)  total $    -2,077/ct  PF 0.95
+
+== Eval barrier MC (empirical dist, buffer-aware 1-6ct) ==
+P(pass) 31.1%  P(blow) 68.9%  median trades-to-pass 31  evals/funded 3.21  fees@$35 $112
+
+== VERDICT vs Phase 2 gates (PF>1.3 & n>=100 & both halves>0 & plateau(10/14/20 all>0) & MC P(blow)<10%) ==
+  [FAIL] PF>1.3
+  [PASS] n>=100
+  [FAIL] half1>0
+  [PASS] half2>0
+  [FAIL] plateau 10/14/20 all>0
+  [FAIL] MC P(blow)<10%
+BASELINE VERDICT: FAIL (n=512 trades, 489 days)
