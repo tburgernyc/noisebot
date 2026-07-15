@@ -107,3 +107,33 @@ Window ledger update: Databento 2024-07→2026-07 evaluations used = 3
 (baseline, E1, E2). Any further hypothesis on this window must be
 registered with a mechanism materially different from always-on momentum,
 event-conditioned momentum (ORB), and VWAP reversion.
+
+---
+
+## E3 — REGISTERED 2026-07-15 (pre-test): Last-hour flow momentum
+
+Economic rationale: options market-makers and leveraged-ETF issuers must
+rebalance hedges into the close in the direction of the day's move; this
+mandated end-of-day flow makes the rest-of-day return predict the final
+30 minutes (Baltussen/Da/Lammers/Martens JFE 2021, 60+ futures, asset-class
+Sharpe 0.87–1.73; Dim/Eraker/Vilkov 2024 confirm the dealer-gamma channel
+in the 0DTE era). Registered prior AGAINST: this is the nearest surviving
+relative of our falsified momentum family — proximity noted deliberately.
+
+Rules (ALL fixed before any run):
+- Signal: at the 15:25 ET bar close, ROD = close(15:25)/RTH open(09:30) − 1.
+- ROD > 0 → LONG; ROD < 0 → SHORT (sign only, no magnitude knob).
+  Fill next bar open (15:30) +1 tick adverse. ONE trade/day, every
+  qualifying day (skip only ROD exactly 0 or short sessions <60 bars).
+- Exit: 15:55 ET flatten only (signal on 15:50 close, fill 15:55 open,
+  adverse tick; defensive last-close exit as in baseline harness).
+  No stop — the hold is 25 minutes by construction.
+- Costs $2.50/ct RT; 1 contract; per-contract MNQ dollars.
+- Registered plateau parameter: signal bar 15:15 / 15:25 / 15:35 (exit
+  fixed at flatten) — all three must be net positive.
+- Gates: standard Phase 2 set (n≥100, PF>1.3, both halves>0, plateau
+  all>0, barrier-MC P(blow)<10%).
+- Kill criterion: any gate fails → E3 falsified on this window. No retune,
+  no added filters (vol/magnitude conditioning is NOT registered).
+
+Window ledger: this consumes evaluation #4 on Databento 2024-07→2026-07.
