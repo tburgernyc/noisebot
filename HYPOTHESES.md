@@ -275,3 +275,45 @@ would take ~2 yrs at this frequency): registered adaptation = 90
 calendar days of daily shadow signals, zero critical errors, live w_t
 and signal states matching backtest recomputation exactly; expectancy
 comparison at whatever n accrues, reported with its (small) n.
+
+---
+
+## E4-v3 — REGISTERED 2026-07-15 (pre-test): E4-v2 with GARCH(1,1) sizing
+
+Rationale: GARCH adds an "aftershock" term to vol estimation — reacts
+faster after shock days than 30d realized vol. Literature prior: vol
+clustering is robust; improvement over realized vol for TARGETING is
+usually marginal. Sizing-estimator A/B, signal untouched.
+Rules: identical to E4-v2 except σ_t = GARCH(1,1) 1-day-ahead forecast
+on daily log returns, params refit every 21 trading days on expanding
+window (min 500 obs warmup; realized-vol fallback before warmup),
+variance recursion updated daily between refits. No lookahead: forecast
+for day t+1 uses data through day t only.
+Bar (pre-stated): must pass ALL E4 gates AND Sharpe ≥ E4-v2's AND maxDD
+no worse than E4-v2's, else E4-v2 stands. BTC window evaluation #3.
+
+---
+
+## E6 — REGISTERED 2026-07-15 (pre-test): Multi-asset crypto trend sleeve
+
+Rationale: institutional TSMOM blueprint (Moskowitz/Ooi/Pedersen; AQR
+century-of-evidence) — same trend premium as E4, harvested with breadth,
+blended horizons, and portfolio-level vol targeting. Honest prior:
+BTC/ETH/SOL correlate ~0.7-0.8 → effective bets ~1.3-1.5, expect modest
+improvement over E4-v2, not transformation.
+Rules (ALL fixed):
+- Universe: BTC-USD (2014-), ETH-USD (2017-), SOL-USD (2020-), daily,
+  Yahoo. Assets enter the book when they have 120 obs of history.
+- Score per asset: s_i = mean of 1[r_L > 0] for L ∈ {14,28,56} days.
+- Vol/cov: EWMA λ=0.94 on daily returns (min 60 obs), annualized √365.
+- Weights: w̃_i = s_i/σ_i; scale whole book so EWMA portfolio vol = 15%
+  ann; cap Σw ≤ 1 (no leverage, long-only, no shorts).
+- Band rebalancing: trade asset i only when |w_target − w_held| > 0.05;
+  cost 0.35% fee + 10 bps slip on traded notional |Δw|.
+- Trade (for PF/n): per-asset episode from w_i > 0 to w_i = 0.
+- Gates: n≥100 episodes, PF>1.3, both halves>0, plateau = lookback sets
+  {7,14,28}/{14,28,56}/{28,56,112} all net positive, bootstrap
+  P(maxDD>40%)<10%, Sharpe ≥ BTC buy-hold Sharpe (hardest benchmark).
+- Kill criterion: any gate fails → E6 falsified. No retune. ETH/SOL
+  windows: evaluation #1 each; BTC window evaluation #4 (sizing/
+  portfolio construction only — signal family unchanged since E4).
