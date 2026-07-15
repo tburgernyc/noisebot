@@ -250,3 +250,28 @@ construction (vol targeting), not a parameter search.
   variants on this window.
 Window ledger: BTC daily window evaluation #2 (E4 was #1). Sizing-only
 variant of a 6/7 near-pass; logged as such.
+
+### 2026-07-15 — E5 evaluation (single registered run; log: logs/phase2_e5_e4v2_2026-07-15.log)
+E5 VERDICT: **FAIL** — n=771, WR 47.9%, PF 1.06 (gate >1.3), total
+$2,200/ct over 16 yrs, half1 $258 / half2 $1,942 (both PASS), plateau
+3/4/5-day all positive (PASS), P(maxDD>$2.5k) 86.8% (gate FAIL).
+Read: the mechanism is likely REAL — direction consistent across both
+halves and all three windows, and the effect strengthened post-2018
+(consistent with NBER paper) — but ~$2.85/trade net edge is too small to
+survive drawdown risk at micro scale. An institutional edge, not a
+retail one. Falsified for OUR deployment; no retune.
+
+### 2026-07-15 — E4-v2 evaluation (single registered run; same log)
+E4-v2 VERDICT: **PASS — first hypothesis to clear all gates** — n=167,
+WR 32.9%, PF 2.84, final 7.98x (~19% CAGR at 15% vol target), maxDD
+-26.0%, half1 +2.17 / half2 +0.26, plateau lb21/28/35 all positive
+(5.48x/7.98x/7.64x), bootstrap P(maxDD>40%) 0.1%, Sharpe 1.38 vs
+buy-hold 0.96. 
+Registered caveats carried forward: (1) half2 much weaker than half1 —
+assume forward Sharpe materially below 1.38 (decay documented); (2) one
+asset, long-only, ~14 trades/yr; (3) PASS means proceed to Phase 4
+shadow validation, NOT capital. Phase 4 gate must be adapted (30 trades
+would take ~2 yrs at this frequency): registered adaptation = 90
+calendar days of daily shadow signals, zero critical errors, live w_t
+and signal states matching backtest recomputation exactly; expectancy
+comparison at whatever n accrues, reported with its (small) n.

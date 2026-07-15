@@ -1,6 +1,6 @@
 # STATE — noise_bot
 
-Updated: 2026-07-15b (session: edge research survey + E3 evaluation + product track)
+Updated: 2026-07-15c (session: E5 + E4-v2 evaluations)
 
 ## What changed this session
 
@@ -25,8 +25,13 @@ Updated: 2026-07-15b (session: edge research survey + E3 evaluation + product tr
                           plateau negative, P(blow) 50.9%. Falsified.
 - E2 (VWAP reversion):   FAIL — PF 0.79, n=818, everything negative.
                           Falsified decisively.
-- E3 (last-hour flow):   FAIL — PF 0.81, n=503, both halves negative,
-                          plateau all negative, P(blow) 87%. Falsified.
+- E3 (last-hour flow):   FAIL — PF 0.81, n=503. Falsified.
+- E4 (BTC trend, full):  FAIL 6/7 — PF 2.86, n=167; ruin gate failed.
+- E5 (month-end rebal):  FAIL — PF 1.06, n=771; mechanism real but edge
+                          ~$2.85/trade, below retail viability. Falsified.
+- E4-v2 (vol-targeted):  **PASS 7/7** — PF 2.84, n=167, maxDD -26%,
+                          Sharpe 1.38 vs 0.96 bh. FIRST GATE PASS.
+                          → Phase 4 shadow (90 days), NOT capital.
 
 ## Window ledger
 
@@ -46,7 +51,6 @@ performance. Zero client interaction.
 
 ## Single next action
 
-Trading: next registration requires NEW data (candidate: month-end
-rebalancing pressure needs ~8yr ES/MNQ history, ~$10-20 Databento; or
-BTC/ETH daily for slow trend — free). Income: build risk guard EA v0.1
-per spec Phase 1.
+Trading: build E4-v2 Phase 4 shadow logger (daily signal + w_t to
+signals.jsonl, cron 00:05 UTC; 90-day gate registered in HYPOTHESES.md).
+Income: build PropGuard EA v0.1 per ~/mql5_products/prop_risk_guard/SPEC.md.

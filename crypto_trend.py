@@ -66,3 +66,36 @@ def boot_p_dd(daily: pd.Series, thresh=0.40, n_paths=10_000, seed=7) -> float:
         if max_dd(eq) < -thresh:
             hits += 1
     return hits / n_paths
+
+
+def run_e4_voltarget(df: pd.DataFrame, lookback: int = 28,
+                     vol_target: float = 0.15, vol_win: int = 30):
+    """E4-v2 as registered: same signal; exposure w_t = min(1, target/sigma_t)
+    when long, else 0. Costs charged on turnover: |dw| * (FEE + SLIP).
+    Returns (trades_df, daily_net_returns, equity_series)."""
+    c = df["close"].values
+    n = len(df)
+    r = np.zeros(n)
+    r[1:] = c[1:] / c[:-1] - 1.0
+    sig = np.zeros(n)
+    for t in range(lookback, n):
+        sig[t] = 1.0 if c[t] > c[t - lookback] else 0.0
+    vol = pd.Series(r, index=df.index).rolling(vol_win).std() * np.sqrt(365)
+    w_tgt = np.minimum(1.0, vol_target / vol.replace(0, np.nan)).fillna(0.0).values
+    eq = np.ones(n)
+    w_prev = 0.0
+    trades, entry_eq, in_pos = [], 1.0, False
+    for t in range(n - 1):
+        w = sig[t] * w_tgt[t]
+        cost = abs(w - w_prev) * (FEE + SLIP)
+        eq[t + 1] = eq[t] * (1.0 + w * r[t + 1] - cost)
+        if not in_pos and w > 0:
+            in_pos, entry_eq = True, eq[t]
+        elif in_pos and w == 0:
+            trades.append({"exit_i": t, "ret": eq[t + 1] / entry_eq - 1.0})
+            in_pos = False
+        w_prev = w
+    if in_pos:
+        trades.append({"exit_i": n - 1, "ret": eq[-1] / entry_eq - 1.0})
+    daily = pd.Series(eq, index=df.index).pct_change().dropna()
+    return pd.DataFrame(trades), daily, pd.Series(eq, index=df.index)
