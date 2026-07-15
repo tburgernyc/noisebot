@@ -203,3 +203,50 @@ sizing). A fractionally-sized variant would be a NEW registration — and
 honesty first: sizing down to pass the DD gate shrinks absolute returns
 proportionally, which at $2-5k capital means the passing version earns
 too little to matter. The binding constraint remains capital, not signal.
+
+---
+
+## E5 — REGISTERED 2026-07-15 (pre-test): Month-end rebalancing pressure (ES)
+
+Economic rationale: pensions/target-date funds rebalance to fixed
+stock/bond weights near month-end by MANDATE, not choice. When stocks
+outperformed bonds month-to-date, they must sell equities into month-end
+(and vice versa), depressing next-day returns ~17 bps, strongest in the
+last 4 trading days (Harvey/Mazzoleni/Melone NBER WP 33554, 2025; ES +
+10Y futures 1997–2023; est. $16B/yr transfer). Registered priors: effect
+freshly published (decay risk); zero post-2023 OOS exists — our 2024–2026
+tail is genuine OOS the paper never saw.
+
+Rules (ALL fixed before any run):
+- Data: ES.v.0 and ZN.v.0 daily (GLBX continuous, 2010-06-06→2026-07-15).
+- Signal at close of day t, only when t is among the LAST 4 trading days
+  of the calendar month: S = MTD(ES close-to-close) − MTD(ZN
+  close-to-close), month-to-date from prior month-end close.
+- S > 0 → SHORT ES for one day (overweight equities → rebalancers sell);
+  S < 0 → LONG ES one day. Enter close(t) with 1 tick (0.25) adverse;
+  exit close(t+1) with 1 tick adverse (MOC-style fills). Consecutive
+  same-direction days chain as separate 1-day trades.
+- Dollars: MES multiplier $5/pt; costs $2.50/ct RT per 1-day trade.
+- Registered plateau parameter: window = last 3 / 4 / 5 trading days of
+  month — all three must be net positive.
+- Gates: n≥100, PF>1.3, both halves>0, plateau all>0, bootstrap
+  P(maxDD > $2,500/ct) < 10% (spot-adapted ruin gate; overnight holds →
+  NOT prop-compatible, IBKR-account edge).
+- Kill criterion: any gate fails → E5 falsified. No retune.
+Window ledger: ES daily 2010–2026 is a FRESH window; evaluation #1.
+
+---
+
+## E4-v2 — REGISTERED 2026-07-15 (pre-test): E4 signal at vol-targeted sizing
+
+Rationale: E4 (28d BTC trend) passed 6/7 gates; sole failure was ruin
+risk at full sizing (P(maxDD>40%) 97.8%). Registered fix is SIZING, not
+signal: target 15% annualized vol — weight w_t = min(1, 0.15/σ_t), σ_t =
+30-day realized vol (annualized √365), applied to the long leg only.
+Signal, costs, and all E4 parameters unchanged. This is the standard CTA
+construction (vol targeting), not a parameter search.
+- Gates: identical to E4 (incl. P(maxDD>40%)<10% and Sharpe ≥ buy-hold).
+- Kill criterion: any gate fails → E4-v2 falsified; no further sizing
+  variants on this window.
+Window ledger: BTC daily window evaluation #2 (E4 was #1). Sizing-only
+variant of a 6/7 near-pass; logged as such.
