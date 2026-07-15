@@ -137,3 +137,20 @@ Rules (ALL fixed before any run):
   no added filters (vol/magnitude conditioning is NOT registered).
 
 Window ledger: this consumes evaluation #4 on Databento 2024-07→2026-07.
+
+### 2026-07-15 — E3 evaluation (single registered run; log: logs/phase2_e3_2026-07-15.log)
+E3 VERDICT: **FAIL** — n=503, WR 44.5%, PF 0.81 (gate >1.3), total
+$-3,846/ct, maxDD $-4,310/ct, half1 $-1,570 / half2 $-2,276 (both FAIL),
+plateau 15:15 $-4,194 / 15:25 $-3,846 / 15:35 $-3,190 (all negative, FAIL),
+barrier-MC P(blow) 87.0% (gate FAIL). Failed 5/6 gates.
+Read: the JFE-2021 last-30-min effect does not survive on MNQ 2024-07→
+2026-07 at honest costs — consistent with per-trade edge of a few bps
+being below friction, and/or the effect being dealer-gamma-conditional
+(conditioning was deliberately NOT registered) and/or decayed. The
+registered prior-against was correct. No retune.
+
+Window ledger update: Databento 2024-07→2026-07 evaluations used = 4
+(baseline, E1, E2, E3). This window is heavily mined by our own process
+now — treat any further hypothesis on it with elevated skepticism; prefer
+NEW data (longer history, different instrument, or different asset class)
+for the next registration.

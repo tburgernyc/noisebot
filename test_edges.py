@@ -109,11 +109,50 @@ def test_flatten_no_overnight():
         check(f"{name}_all_trades_closed_and_finite", ok)
 
 
+
+
+def test_e3_behavior():
+    from edges import run_e3
+    base = 20000.0
+    d = pd.bdate_range("2026-05-04", periods=2)
+    # up-day: steady rise all day -> LONG at 15:30, exit 15:55
+    up = synth_day(d[0].date(), base + 0.5 * np.arange(78))
+    # down-day: steady fall -> SHORT
+    dn = synth_day(d[1].date(), base - 0.5 * np.arange(78))
+    tr = run_e3(pd.concat([up, dn]))
+    check("e3_two_days_two_trades", len(tr) == 2)
+    check("e3_updy_long_dndy_short",
+          len(tr) == 2 and tr["dir"].iloc[0] == 1 and tr["dir"].iloc[1] == -1)
+    # entry must be the 15:30 bar open +/- tick: bar index 72 = 15:30
+    ent_expected = up["open"].iloc[73 - 1]  # signal bar 15:25 is idx 71; next open idx 72
+    check("e3_entry_at_1530_open",
+          len(tr) == 2 and abs(tr["entry"].iloc[0] - (up["open"].iloc[72] + TICK)) < 1e-9)
+    # exit at 15:55 bar open, adverse tick (idx 77)
+    check("e3_exit_at_flatten_open",
+          len(tr) == 2 and abs(tr["exit"].iloc[0] - (up["open"].iloc[77] - TICK)) < 1e-9)
+
+
+def test_e3_no_lookahead_real():
+    from edges import run_e3
+    from noise_area import load_databento_parquet, rth
+    df5 = load_databento_parquet("data/databento_1m.parquet")
+    all_dates = sorted(set(rth(df5).index.date))
+    cutoff = all_dates[250]
+    sub = df5[[dd < cutoff for dd in df5.index.date]]
+    full = run_e3(df5); part = run_e3(sub)
+    f = full[[dd < cutoff for dd in full["date"]]].reset_index(drop=True)
+    p = part.reset_index(drop=True)
+    check("e3_no_lookahead_truncation_invariance",
+          len(f) == len(p) and np.allclose(f["pnl"], p["pnl"]))
+
+
 if __name__ == "__main__":
     test_e1_behavior()
     test_e2_behavior()
     test_no_lookahead_real_data()
     test_flatten_no_overnight()
+    test_e3_behavior()
+    test_e3_no_lookahead_real()
     print("\nALL EDGE TESTS PASS" if not FAILS else
           f"\n{len(FAILS)} FAILURES: {FAILS}")
     raise SystemExit(1 if FAILS else 0)

@@ -134,3 +134,36 @@ def run_e2(df5: pd.DataFrame, z_entry: float = 2.0, z_stop: float = 3.5,
             last = float(g["close"].iloc[-1])
             trades.append(_trade(d, pos, entry_px, last - TICK * pos))
     return pd.DataFrame(trades)
+
+
+def run_e3(df5: pd.DataFrame, signal_hhmm: str = "15:25") -> pd.DataFrame:
+    """E3 as registered: at signal bar close, ROD = close/RTH_open - 1.
+    Sign -> direction. Fill next bar open +1 tick adverse. Exit at 15:55
+    flatten (fill 15:55 bar open, adverse tick; defensive last close).
+    One trade/day, no stop, no filters."""
+    groups = _day_groups(df5)
+    trades = []
+    for d in sorted(groups):
+        g = groups[d]
+        times = [ts.strftime("%H:%M") for ts in g.index]
+        try:
+            si = times.index(signal_hhmm)
+        except ValueError:
+            continue
+        if si + 1 >= len(g):
+            continue
+        rod = float(g["close"].iloc[si]) / float(g["open"].iloc[0]) - 1.0
+        if rod == 0.0:
+            continue
+        pos = 1 if rod > 0 else -1
+        entry_px = _fill(float(g["open"].iloc[si + 1]), pos)
+        # exit: first bar at/after FLATTEN -> fill at its open, adverse tick
+        exit_px = None
+        for k in range(si + 1, len(g)):
+            if times[k] >= FLATTEN:
+                exit_px = _exit_fill(float(g["open"].iloc[k]), pos)
+                break
+        if exit_px is None:  # defensive: last bar close, adverse tick
+            exit_px = float(g["close"].iloc[-1]) - TICK * pos
+        trades.append(_trade(d, pos, entry_px, exit_px))
+    return pd.DataFrame(trades)

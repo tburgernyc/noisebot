@@ -1,0 +1,22 @@
+data: 40134 RTH 5m bars
+signal 15:15: trades  503  total $   -4,194/ct  PF 0.81
+signal 15:25: trades  503  total $   -3,846/ct  PF 0.81
+signal 15:35: trades  502  total $   -3,190/ct  PF 0.81
+
+== E3 main — last-hour flow momentum, signal 15:25 (registered) ==
+trades 503  WR 44.5%  PF 0.81  avg $-7.65/ct  W $74 L $73
+total $-3,846/ct  maxDD $-4,310/ct  half1 $-1,570  half2 $-2,276
+
+== Eval barrier MC (empirical dist, buffer-aware 1-6ct) ==
+P(pass) 13.0%  P(blow) 87.0%  median trades-to-pass 24  evals/funded 7.69  fees@$35 $269
+
+== VERDICT E3 vs gates (PF>1.3 & n>=100 & both halves>0 & plateau all>0 & MC P(blow)<10%) ==
+  [FAIL] PF>1.3
+  [PASS] n>=100
+  [FAIL] half1>0
+  [FAIL] half2>0
+  [FAIL] plateau all>0
+  [FAIL] MC P(blow)<10%
+E3 VERDICT: FAIL (n=503 trades)
+
+SESSION: E3 FAIL
