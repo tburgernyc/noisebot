@@ -317,3 +317,26 @@ Rules (ALL fixed):
 - Kill criterion: any gate fails → E6 falsified. No retune. ETH/SOL
   windows: evaluation #1 each; BTC window evaluation #4 (sizing/
   portfolio construction only — signal family unchanged since E4).
+
+### 2026-07-15 — E4-v3 evaluation (single registered run; log: logs/phase2_e4v3_e6_2026-07-15.log)
+E4-v3 VERDICT: **FAIL on the pre-stated bar — E4-v2 stands.** GARCH(1,1)
+sizing passed all absolute gates (n=167, PF 2.42, P(maxDD>40%)<10%,
+Sharpe 1.22 ≥ bh) but was strictly WORSE than E4-v2's realized-vol
+sizing: Sharpe 1.22 vs 1.38, final 4.56x vs 7.98x, maxDD equal at -26%.
+The registered prior held: GARCH's complexity did not earn its keep for
+vol TARGETING on this window. The YouTube video's one technical
+contribution is hereby tested and declined. No retune.
+
+### 2026-07-15 — E6 evaluation (single registered run; same log)
+E6 VERDICT: **PASS — 7/7 gates** — n=327 episodes, WR 28.7%, PF 1.94,
+final 4.72x, maxDD -31.2%, plateau {7,14,28}/{14,28,56}/{28,56,112} all
+positive (4.59x/4.72x/6.00x), P(maxDD>40%)<10%, Sharpe 0.97 vs BTC
+buy-hold 0.96 (cleared by a hair — logged as such).
+Honest comparison ON THE RECORD: E6 (portfolio) underperforms E4-v2
+(single-asset BTC) in-sample — Sharpe 0.97 vs 1.38 — because ETH/SOL
+trends were weaker than BTC's and the assets are highly correlated.
+E6's case is robustness (no single-asset selection risk), not in-sample
+metrics. DECISION REGISTERED: both E4-v2 and E6 run Phase 4 shadow for
+90 days in parallel; deployment choice (if any) is made on shadow
+integrity + whichever construction's live behavior matches its backtest
+recomputation — NOT on which had the prettier backtest.
