@@ -185,3 +185,21 @@ Rules (ALL fixed before any run):
   retune, no ETH fallback (ETH would be a separate registration).
 
 Window ledger: BTC daily 2014→2026 is a FRESH window; evaluation #1.
+
+### 2026-07-15 — E4 evaluation (single registered run; log: logs/phase2_e4_2026-07-15.log)
+E4 VERDICT: **FAIL (6/7 gates passed)** — n=167 round trips, WR 34.7%,
+PF 2.86, final equity 136.9x, half1 +8.35 / half2 +0.86 (both PASS),
+plateau lb21/28/35 all positive (49.7x/136.9x/160.9x), Sharpe 1.11 vs
+buy-hold 0.96 (PASS). FAILED gate: realized maxDD -78.5%; bootstrap
+P(maxDD>40%) = 97.8% vs gate <10%.
+Read: the trend signal is real on this window (PF 2.86 across 167 trades
+is the strongest metric this pipeline has produced) but at full spot
+sizing the strategy carries near-buy-hold ruin risk — it avoided only
+~5pts of buy-hold's -83.4% maxDD. Half2 (+0.86 vs half1 +8.35) also
+confirms the documented post-ETF decay direction. For a small account
+where the capital is needed, the DD gate is the correct bar and it
+failed decisively. Kill criterion applies to THIS registration (full
+sizing). A fractionally-sized variant would be a NEW registration — and
+honesty first: sizing down to pass the DD gate shrinks absolute returns
+proportionally, which at $2-5k capital means the passing version earns
+too little to matter. The binding constraint remains capital, not signal.

@@ -1,0 +1,19 @@
+data: 4320 daily bars  2014-09-17 -> 2026-07-15
+lb 21: trades  190  sum(ret) +6.30  final eq 49.65x
+lb 28: trades  167  sum(ret) +9.21  final eq 136.92x
+lb 35: trades  137  sum(ret) +10.05  final eq 160.91x
+
+== E4 main (lb 28) ==
+trades 167  WR 34.7%  PF 2.86  final 136.92x  maxDD -78.5%
+half1 +8.35  half2 +0.86  Sharpe 1.11 vs buy-hold 0.96 (bh maxDD -83.4%)
+bootstrap P(maxDD>40%) 97.8%
+
+== VERDICT E4 vs registered gates ==
+  [PASS] n>=100
+  [PASS] PF>1.3
+  [PASS] half1>0
+  [PASS] half2>0
+  [PASS] plateau all>0
+  [FAIL] P(maxDD>40%)<10%
+  [PASS] Sharpe>=buy-hold
+E4 VERDICT: FAIL (n=167)
