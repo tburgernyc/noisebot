@@ -340,3 +340,28 @@ metrics. DECISION REGISTERED: both E4-v2 and E6 run Phase 4 shadow for
 90 days in parallel; deployment choice (if any) is made on shadow
 integrity + whichever construction's live behavior matches its backtest
 recomputation — NOT on which had the prettier backtest.
+
+---
+
+## QC-AUDIT — REGISTERED 2026-07-16 (pre-data): QuantCrawler signal audit
+
+Protocol locked BEFORE any signal is logged. Vendor backtests are
+exhibits, not evidence; only forward signals count. Every QC signal is
+logged at appearance via shadow_qc.py (append-only, hash-chained,
+backfills excluded), adjudicated pessimistically against market data
+(market entry at next bar open +5bps/side; stop-before-target in
+ambiguous bars). DECISION RULE: n>=60 closed signals AND PF>=1.2 on
+R-multiples -> registerable as a pipeline hypothesis; otherwise REJECT
+and cancel subscription. No mid-audit rule changes.
+
+## E4-v2 → FundedNext DEPLOYMENT PLAN — REGISTERED 2026-07-16
+
+MC on E4-v2's return stream vs Stellar 2-step rules (static 10% max
+loss, 5% daily, +8%/+5% targets, no time limit): at 10% vol target,
+P(pass both) ~90%, median ~9 months (in-sample-flattered; log:
+logs/fundednext_mc_2026-07-15.log). BUY TRIGGER — all three required:
+(1) 90-day shadow gate passes (signals_e4v2.jsonl, zero critical
+errors, live matches recomputation); (2) signal is ON (r28>0) at
+purchase; (3) firm rules verified in writing: BTC CFD weekend quoting
+on MT5, EA add-on cost, inactivity-breach rule, Stellar consistency
+rules, profit split. Registered sizing: vol target 10%. One account.

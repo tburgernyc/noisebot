@@ -1,0 +1,12 @@
+vol target 5%: realized ann.vol 4.5% CAGR 6.2%
+  Phase1 (+8%): P(pass) 99.1%  P(breach) 0.5%  median 388d | Phase2 (+5%): P(pass) 99.4%  median 237d
+  P(pass BOTH phases) 98.5%   (trading-day medians; calendar ≈ same, crypto trades daily)
+vol target 8%: realized ann.vol 7.1% CAGR 10.1%
+  Phase1 (+8%): P(pass) 96.7%  P(breach) 3.3%  median 225d | Phase2 (+5%): P(pass) 97.2%  median 132d
+  P(pass BOTH phases) 94.1%   (trading-day medians; calendar ≈ same, crypto trades daily)
+vol target 10%: realized ann.vol 8.9% CAGR 12.6%
+  Phase1 (+8%): P(pass) 94.4%  P(breach) 5.6%  median 167d | Phase2 (+5%): P(pass) 94.9%  median 102d
+  P(pass BOTH phases) 89.6%   (trading-day medians; calendar ≈ same, crypto trades daily)
+vol target 15%: realized ann.vol 13.4% CAGR 19.2%
+  Phase1 (+8%): P(pass) 87.1%  P(breach) 12.9%  median 101d | Phase2 (+5%): P(pass) 89.5%  median 64d
+  P(pass BOTH phases) 78.0%   (trading-day medians; calendar ≈ same, crypto trades daily)

@@ -1,0 +1,18 @@
+
+== zero edge (PF 1.00) (WR 40.0%, PF 1.00) ==
+EVAL:  P(pass) 6.0%  P(blow) 28.1%  P(expire) 65.9%
+5-pack: P(>=1 pass) 26.4% if INDEPENDENT; = 6.0% if same trades copied (1 bet x5)
+PA:    P(reach +5k payout buffer) 30.9%  P(blow first) 69.1%
+Chain per account: P(eval pass AND PA payout) 1.8%
+
+== modest edge (PF~1.15) (WR 43.4%, PF 1.15) ==
+EVAL:  P(pass) 17.3%  P(blow) 11.5%  P(expire) 71.2%
+5-pack: P(>=1 pass) 61.3% if INDEPENDENT; = 17.3% if same trades copied (1 bet x5)
+PA:    P(reach +5k payout buffer) 66.1%  P(blow first) 33.9%
+Chain per account: P(eval pass AND PA payout) 11.4%
+
+== validated edge (PF 1.30) (WR 46.4%, PF 1.30) ==
+EVAL:  P(pass) 34.8%  P(blow) 4.0%  P(expire) 61.1%
+5-pack: P(>=1 pass) 88.3% if INDEPENDENT; = 34.8% if same trades copied (1 bet x5)
+PA:    P(reach +5k payout buffer) 90.6%  P(blow first) 9.4%
+Chain per account: P(eval pass AND PA payout) 31.6%
