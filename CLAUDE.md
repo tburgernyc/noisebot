@@ -7,11 +7,25 @@ Protect that above speed. Backtests are hypotheses, never forward
 expectancy. Success metric: net cash withdrawn minus ALL fees.
 
 ## Current state (also see STATE.md — read it first, every session)
-- Phase 2 NOT passed. Blocker: Databento pull + family backtest.
-- H3 registered: cross-instrument robustness (NQ primary; ES/YM/RTY
-  in-family confirms; GC/CL out-of-family controls). Gate stays on NQ.
-- TQQQ rejected for prop path. Forex track (FTMO US, MT5, US100.cash)
-  parked until Phase 2 passes + written automation-policy verification.
+- Noise-area MNQ family ARCHIVED as falsified on Databento MNQ
+  2024-07→2026-07 (baseline PF 0.98, n=512). E1 (ORB+compression,
+  n=183), E2 (VWAP reversion, n=818), E3 (last-hour flow, n=503) also
+  falsified there; window has 4 evaluations burned — prefer NEW data.
+  Old H1/H2 UNTESTABLE (definitions lost in machine wipe).
+- Databento loader EXISTS and is tested: load_databento_parquet in
+  noise_area.py, unit-tested by test_loader.py. Data already purchased.
+- First gate passes (Phase 2, 7/7): E4-v2 (BTC 28d trend, 15% vol
+  target — PF 2.84, n=167) and E6 (multi-asset crypto trend — PF 1.94,
+  n=327 episodes; Sharpe 0.97 vs bh 0.96, by a hair). Both now in the
+  registered 90-day Phase 4 shadow (started 2026-07-16) — NOT capital.
+- Live crons run in ~/noise_bot (a SECOND clone of this repo); shadow
+  signals accrue in ~/noise_bot/logs/signals_{e4v2,e6,qc}.jsonl.
+- Registered, pending: QC-AUDIT vendor-signal audit; E4-v2→FundedNext
+  deployment plan (buy trigger: shadow pass + signal ON + firm rules
+  verified in writing). E4-v3 (GARCH sizing) tested and declined.
+- Blocker: calendar (90-day shadow to ~2026-10-14) + intellectual — no
+  registered hypothesis with a mechanism distinct from the falsified
+  families. Yahoo 60-day window burned for selection (data-QA only).
 
 ## NON-NEGOTIABLES — mechanically enforced by hooks; do not work around
 1. NO execution/broker code (ib_async, tradovate, projectx, order
