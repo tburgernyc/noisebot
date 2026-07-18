@@ -69,13 +69,39 @@ Updated: 2026-07-18 (session: harness verification + ledger reconciliation)
   $CLAUDE_PROJECT_DIR) in .claude/settings.json. NOT yet applied.
 - Baseline suite green all session: test_signals.py ALL 5 PASS.
 
-## Single next action (2026-07-18c)
+## 2026-07-18d session (E8-R registered, evaluated, falsified; hook fix)
 
-Fix the hook path in .claude/settings.json (make gate_guard.py
-invocation cwd-independent), then register the next hypothesis — the
-mechanism must now clear FIVE falsified families (always-on momentum,
-ORB, VWAP reversion, last-hour flow, funding carry); E4-v2/E6 shadow
-runs itself until ~2026-10-14.
+- E8-R (ETHUSDT 15m trend continuation, redesigned from an audited
+  public Jesse TEMA strategy) registered pre-test with Tim's cost
+  fixture sign-off (6 bps/side + actual funding prints), then
+  evaluated ONCE. VERDICT: FAIL 3/7 gates — body 2022→2025: n=951,
+  PF 1.05, both halves positive, plateau 5/9 cells negative, top-5
+  concentration 217% of net (pre-declared lottery falsifier),
+  corr(E6) -0.008 (n=1,161 days). OOS 2026H1: n=126, -909 USDT/unit.
+  Attribution: gross price +3,883 vs costs -2,759 (71% of gross) —
+  sub-friction, same failure mode as E3/MNQ family. Skew signature
+  MATCHED prediction (WR 33.1%, W/L 2.13): trend-shaped, no net edge
+  at 15m. Plateau gradient points to the daily horizon (E4-v2/E6).
+  Recorded in HYPOTHESES.md; abandoned. ETHUSDT 15m 2022→2026 burned.
+- New data: data/klines/ (54 Binance Vision monthly 15m archives,
+  157,632 bars). New code: e8_trend.py, test_e8.py (8/8 machinery
+  incl. no-lookahead over 137 trades; TEMA init-transient bug found
+  and fixed on SYNTHETIC data pre-run, warmup mask 3n→6n), phase2_e8.py.
+- Hook-path bug FIXED: both hook commands in .claude/settings.json now
+  cd to "${CLAUDE_PROJECT_DIR:-/home/tburger/noisebot}" first —
+  invocation AND the guard's internal relative gate checks are now
+  cwd-independent. Verified by stdin pipe-test from a foreign cwd
+  (benign exit 0 / banned-content exit 2) + jq schema check. Takes
+  effect on /hooks reload or next session start.
+- Tests at close: test_signals.py 5/5, test_e7.py 6/6, test_e8.py 8/8.
+
+## Single next action (2026-07-18d)
+
+Run /hooks once (or restart) to load the fixed hook config, then
+register the next hypothesis — mechanism must clear SIX falsified
+families (always-on momentum, ORB, VWAP reversion, last-hour flow,
+funding carry, fast crypto trend); E4-v2/E6 shadow runs itself until
+~2026-10-14 and remains the only live pipeline work.
 
 ---
 
