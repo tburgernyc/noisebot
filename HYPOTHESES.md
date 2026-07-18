@@ -410,6 +410,29 @@ Rules (ALL fixed before any run):
   fees (US-regulated perps) must be re-verified in writing before any
   live sizing; Binance fixture is for evaluation only.
 
+### 2026-07-18 — E7 evaluation (single registered run; log: logs/phase2_e7_2026-07-18.log)
+Data: Binance monthly funding archives (226 files; BTC/ETH 2020-01→
+2026-06-30, SOL 2020-09→2026-06-30; annualization interval-aware — 101
+of 20,662 prints were 2h/4h emergency intervals). Machinery verified on
+synthetic data before the run (test_e7.py, 6/6 incl. no-lookahead).
+E7 VERDICT: **FAIL — 2/8 gates.** Body 2020-01→2025-12 at ±15%: n=129
+episodes, WR 48.8%, PF 0.58, final 0.424x, maxDD -63.7%, Sharpe -0.69,
+both halves negative. Plateau ±10/15/20 sum(ret) -1.12/-0.76/-0.58 —
+all negative (n=205/129/123). Ruin gate FAIL. ATTRIBUTION gate FAIL and
+decisive: funding leg +0.333 (real, positive) vs price leg -1.033 —
+harvesting the payment cost 3x the payment. Passing gates: n>=100 and
+corr(E6) = -0.486 (n=2,022 days). Once-only OOS 2026H1: 3 episodes,
+-5.31% segment return, Sharpe -1.66 (n=181 days — small, as registered).
+Read: the structural payment EXISTS (+33% cumulative funding capture
+over 6 years) but it is fair-or-cheap compensation, not free money —
+being short the crowded side in a market that mostly went up cost far
+more in adverse price moves than funding paid. The carry is priced.
+Kill criterion applies: E7 falsified. Recorded and abandoned — no
+retune, no threshold search, no venue shopping. The negative E6
+correlation is noted for the record but purchases nothing at PF 0.58.
+Window ledger: Binance funding 2020→2026 evaluation #1 (burned);
+BTC/ETH/SOL daily price marks reused (recorded above).
+
 ---
 
 ## E4-v2 → FundedNext DEPLOYMENT PLAN — REGISTERED 2026-07-16

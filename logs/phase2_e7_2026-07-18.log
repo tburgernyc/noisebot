@@ -1,0 +1,23 @@
+/home/tburger/noisebot/phase2_e7.py:47: Pandas4Warning: Sorting by default when concatenating all DatetimeIndex is deprecated.  In the future, pandas will respect the default of `sort=False`. Specify `sort=True` or `sort=False` to silence this message. If you see this warnings when not directly calling concat, report a bug to pandas.
+  both = pd.concat([daily.rename("e7"), d6.rename("e6")], axis=1).dropna()
+funding BTC: 2020-01-01 -> 2026-06-30 (2373 days)
+funding ETH: 2020-01-01 -> 2026-06-30 (2373 days)
+funding SOL: 2020-09-13 -> 2026-06-30 (2117 days)
+th ±10%: episodes 205  sum(ret) -1.1237  final 0.263x
+th ±15%: episodes 129  sum(ret) -0.7569  final 0.424x
+th ±20%: episodes 123  sum(ret) -0.5772  final 0.518x
+
+== E7 body (±15%) == episodes 129  WR 48.8%  PF 0.58  final 0.424x  maxDD -63.7%  Sharpe -0.69
+attribution: funding +0.3328  price -1.0326  costs 0.0571
+corr(E7, E6) daily on body: -0.486 (n=2022 days)
+  [PASS] n>=100
+  [FAIL] PF>=1.2 (registered adaptation)
+  [FAIL] half1>0
+  [FAIL] half2>0
+  [FAIL] plateau 10/15/20 all>0
+  [FAIL] P(maxDD>40%)<10%
+  [FAIL] attribution funding>0 & > |price|
+  [PASS] corr(E6)<=0.5
+E7 BODY VERDICT: FAIL (n=129)
+
+== E7 OOS 2026H1 (once-only) == episodes exiting in segment: 3  sum(ret) -0.0535  segment return -5.31%  Sharpe -1.66  (n=181 days — small, reported as registered)
