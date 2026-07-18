@@ -489,6 +489,34 @@ Rules (ALL fixed before any run):
   required in writing before that sleeve touches their MC. FAIL →
   recorded, abandoned, no re-tuning against this window ever.
 
+### 2026-07-18 — E8-R evaluation (single registered run; log: logs/phase2_e8_2026-07-18.log)
+Data: Binance Vision ETHUSDT perp 15m klines, 54 monthly archives,
+157,632 bars 2022-01-01→2026-06-30; 7,119 actual funding prints.
+Machinery verified pre-run on synthetic data (test_e8.py, 8/8 incl.
+no-lookahead over 137 closed trades and completed-4h-bar isolation; a
+TEMA init-transient bug was found and fixed on SYNTHETIC data before
+the registered window was touched — warmup mask 3n→6n).
+E8-R VERDICT: **FAIL — 3/7 gates.** Body 2022→2025 at (ADX>35, 4×):
+n=951, WR 33.1%, PF 1.05 (gate ≥1.2 FAIL), net +1,061 USDT/unit,
+half1 +267 / half2 +794 (both PASS). Plateau FAIL: 5 of 9 cells
+negative (ADX30: -2042/-1263/+223; ADX35: -823/+1061/+2555; ADX40:
+-335/-82/+707 — monotone improvement toward fewer, longer trades).
+Top-5 concentration FAIL: 217% of net (the pre-declared lottery
+signature — the entire net edge and more sits in 5 of 951 trades).
+corr(E6) -0.008 (n=1,161 days) PASS. Once-only OOS 2026H1: n=126,
+net -909 USDT/unit. FAIL.
+Attribution: price leg +3,883 gross; costs -2,759 (71% of gross);
+funding -64. The skew signature MATCHED prediction (WR<50%, W/L 2.13)
+— the system is genuinely trend-shaped, but at 15m the per-trade edge
+(~$4 gross/trade) is the same order as the $2.90 round-trip cost.
+Read: same failure mode as E3 and the falsified MNQ family — the
+15m-frequency effect, if any, is below friction; profitability drifts
+toward the slowest cells (ADX40/5×, +707), pointing back at the daily
+horizon where E4-v2/E6 already live. The cascade mechanism did not pay
+at this clock. Kill criterion applies: E8-R falsified. Recorded and
+abandoned — no re-tuning against this window ever (as registered).
+Window ledger: ETHUSDT 15m 2022→2026 evaluation #1 (burned).
+
 ---
 
 ## E4-v2 → FundedNext DEPLOYMENT PLAN — REGISTERED 2026-07-16

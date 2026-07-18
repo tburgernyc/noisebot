@@ -1,0 +1,29 @@
+/home/tburger/noisebot/phase2_e8.py:69: Pandas4Warning: Sorting by default when concatenating all DatetimeIndex is deprecated.  In the future, pandas will respect the default of `sort=False`. Specify `sort=True` or `sort=False` to silence this message. If you see this warnings when not directly calling concat, report a bug to pandas.
+  both = pd.concat([e8d.rename("e8"), d6.rename("e6")], axis=1).dropna()
+klines: 157,632 bars 2022-01-01 00:00:00+00:00 -> 2026-06-30 23:45:00+00:00
+funding prints: 7,119
+ADX>30 trail 3.5x: n=1300  net    -2041.9 USDT
+ADX>30 trail 4.0x: n=1224  net    -1263.0 USDT
+ADX>30 trail 5.0x: n=1106  net     +222.7 USDT
+ADX>35 trail 3.5x: n=1008  net     -822.7 USDT
+ADX>35 trail 4.0x: n= 951  net    +1060.5 USDT
+ADX>35 trail 5.0x: n= 874  net    +2555.1 USDT
+ADX>40 trail 3.5x: n= 722  net     -334.5 USDT
+ADX>40 trail 4.0x: n= 699  net      -82.4 USDT
+ADX>40 trail 5.0x: n= 658  net     +706.5 USDT
+
+== E8-R body (ADX>35, 4x) == n=951  WR 33.1%  PF 1.05  net +1060.5 USDT/unit  half1 +267.0 / half2 +793.5
+skew signature: avg win/avg loss 2.13  (prediction: WR<50% with ratio>1.5)
+attribution: price +3883.0  funding -63.7  costs 2758.8
+top-5 trades / net: 217.0%
+corr(E8, E6) daily on body: -0.008 (n=1161 days)
+  [FAIL] PF>=1.2
+  [PASS] n>=150
+  [PASS] half1>0
+  [PASS] half2>0
+  [FAIL] plateau 9 cells all>0
+  [PASS] corr(E6)<=0.5
+  [FAIL] top5<=60% of net
+E8-R BODY VERDICT: FAIL (n=951)
+
+== E8-R OOS 2026H1 (once-only) == trades exiting in segment: 126  net -909.1 USDT/unit  (n=126 — reported as registered)
