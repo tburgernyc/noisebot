@@ -27,6 +27,23 @@ Updated: 2026-07-18 (session: harness verification + ledger reconciliation)
   there (logged bar 2026-07-17, e4v2 signal ON, w=0.4502); old clone
   renamed to ~/noise_bot.retired-2026-07-18 (had zero unique commits).
 
+## 2026-07-18b session (consolidation completed)
+
+- Clone consolidation finished and VERIFIED: crons repointed and firing
+  from ~/noisebot; logs/shadow_cron.log gitignored (kept local).
+- Pre-deletion sweep of the retired clone found .xfer/p1-p5 transfer
+  chunks (base64 tar.gz, 2026-07-14): five members byte-identical to
+  tracked files, but make_synthetic_1m.py and deploy_phase2.sh existed
+  NOWHERE in git — rescued, verified (py_compile / bash -n), committed
+  (fca8cf5) with deploy DEST repointed to ~/noisebot. Tarball's
+  STATE.md member was truncated (old snapshot; substance in git
+  history). Old clone then deleted by Tim.
+- test_signals.py final run: ALL 5 PASS. No hypotheses tested; no
+  backtests run. HYPOTHESES.md unchanged (summary table produced for
+  Tim from existing entries only).
+- Shadow status at close: e4v2 logged through bar 2026-07-17, signal
+  ON (r28 +0.0056, w 0.4502); e6 accruing; zero error lines.
+
 ## Single next action (2026-07-18)
 
 Register the next hypothesis via /register-hypothesis with a mechanism
