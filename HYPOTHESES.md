@@ -435,6 +435,62 @@ BTC/ETH/SOL daily price marks reused (recorded above).
 
 ---
 
+## E8-R — REGISTERED 2026-07-18 (pre-test): Intraday crypto trend continuation, coherent expression (ETHUSDT 15m)
+
+Provenance: redesign of a public Jesse TEMA strategy after structural
+audit. Original DISCARDED for: entry adverse to mechanism (fade-limit on
+a momentum signal), tail-amputating fixed TP, collinear double filter
+(ADX+CMO), 3× sizing error. All redesign choices fixed here, PRE-DATA;
+any post-data change voids the entry.
+
+Economic rationale: leveraged-positioning cascades — strong aligned
+directional moves on 15m/4h force liquidations and momentum-chasing on
+the same side, extending moves. Faster-clocked relative of the E4-v2/E6
+underreaction family; the correlation gate adjudicates distinctness.
+RECORDED RISKS (pre-stated): (a) TEMA periods 10/80 and 20/70 are
+inherited from the public original and MAY have been tuned by its author
+on overlapping ETH history — the plateau does not cover them; if E8-R
+passes, this provenance caveat travels with the pass. (b) The ETHUSDT
+15m 2022→2026 price path overlaps E6's ETH daily window (eval #1
+burned there); granularity and mechanism are new, the overlap is not.
+
+Rules (ALL fixed before any run):
+- Signal on 15m bar close: LONG when TEMA(10) > TEMA(80) on 15m AND
+  TEMA(20) > TEMA(70) on 4h AND ADX(14) > 35. SHORT mirror. CMO gate
+  deleted (collinear with ADX by design audit, pre-data).
+- Entry: next-bar open, adverse half-spread — with the flow. No fade
+  limits.
+- Initial stop: 3×ATR(14) from fill.
+- Exit: Chandelier trail 4×ATR(14) from highest close since entry
+  (mirror short); also exit on opposite signal. No fixed TP. 24/7 hold
+  permitted; funding accrued while held.
+- Size: fixed 1 unit — edge measurement only. Sizing is a SEPARATE
+  future registration (E4-v2 precedent).
+- Costs (pinned 2026-07-18, Tim's selection): 0.05% taker + 0.01%
+  half-spread per side (6 bps/side all-in); funding from ACTUAL Binance
+  ETHUSDT 8h prints over each holding period, sign-aware.
+- Registered plateau (ALL cells must be net positive, never best-of):
+  ADX gate ∈ {30, 35, 40} × trail ∈ {3.5, 4, 5}×ATR — 9 cells.
+- Data: Binance ETHUSDT USDT-perp 15m klines (data.binance.vision,
+  free — no Databento spend), 2022-01-01 → 2026-06-30. FRESH window at
+  this granularity, evaluation #1 (overlap caveat above). Final 6
+  months (2026-01-01 → 2026-06-30) once-only OOS segment, reported
+  separately. Yahoo 60-day window untouched; daily crypto windows
+  untouched.
+- Prediction if TRUE: PF ≥ 1.2 net on n ≥ 150 fills; both halves
+  profitable; WR < 50% with avg-win/avg-loss > 1.5 (skew signature — a
+  trend system with high WR and small wins is doing something other
+  than claimed); daily-return correlation with E6 sleeve ≤ 0.5.
+- FALSIFIED if ANY: PF < 1.2; n < 150; either half negative; any
+  plateau cell negative; corr(E6) > 0.5 (verdict: redundant expression,
+  recorded as such); top 5 trades > 60% of net P&L (lottery, not edge).
+- Decision rule: PASS → candidate sleeve; separate sizing registration
+  before any deployment math; FundedNext funding-sim verification
+  required in writing before that sleeve touches their MC. FAIL →
+  recorded, abandoned, no re-tuning against this window ever.
+
+---
+
 ## E4-v2 → FundedNext DEPLOYMENT PLAN — REGISTERED 2026-07-16
 
 MC on E4-v2's return stream vs Stellar 2-step rules (static 10% max
