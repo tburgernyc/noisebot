@@ -354,6 +354,64 @@ ambiguous bars). DECISION RULE: n>=60 closed signals AND PF>=1.2 on
 R-multiples -> registerable as a pipeline hypothesis; otherwise REJECT
 and cancel subscription. No mid-audit rule changes.
 
+## E7 — REGISTERED 2026-07-18 (pre-test): Perp funding-rate carry (standalone)
+
+Economic rationale: perpetual-swap funding is paid by the crowded side —
+persistently leveraged longs in crypto — to whoever takes the other side.
+Harvesting it is compensation for warehousing inventory risk against
+retail leverage demand: a structural payment stream, not a price
+forecast. Mechanism family: CARRY — distinct from every falsified family
+(always-on momentum, event-conditioned momentum, VWAP reversion) and
+from the passing trend family (E4-v2/E6), whose signal is price-derived;
+E7's signal is the funding print itself.
+
+Rules (ALL fixed before any run):
+- Universe: BTC, ETH, SOL USDT-margined perps. Funding source: Binance
+  funding-rate history, 2020-01→2026-07 (8h prints; annualized =
+  mean(8h rate) × 3 × 365).
+- Signal at each daily close: trailing 3-day mean annualized funding F.
+  F > +15% → SHORT 1 unit (collect funding); F < −15% → LONG 1 unit;
+  else FLAT. Per asset, independently.
+- Sizing: E4-v2 convention per asset — w_i = min(1, 0.15/σ_i), σ_i =
+  30-day realized vol annualized √365, applied to |position|; book cap
+  Σ|w_i| ≤ 1 with pro-rata scale-down (E6 convention). No leverage,
+  no martingale.
+- Fills: position changes at next daily open on traded notional |Δw|.
+- Costs: 0.10% per side ALL-IN (taker + spread + slippage), flat across
+  assets — registered pessimistic fixture. Funding P&L accrues from the
+  actual historical 8h prints while the position is held.
+- Trade for PF/n: per-asset episode from |w_i| > 0 to w_i = 0 (E6
+  convention).
+- Registered plateau parameter: funding threshold ±10% / ±15% / ±20% —
+  all three must be net positive. (Lookback 3d, vol target 15%, and all
+  cost numbers are FIXED, not swept.)
+- Gates (all required): n ≥ 100 episodes; PF ≥ 1.2 — REGISTERED
+  ADAPTATION below the standard 1.3, rationale: carry P&L is a
+  high-frequency small-increment stream (structurally lower PF variance
+  than trend's fat right tail), logged as such; both sample halves
+  positive; plateau all > 0; bootstrap (10k paths, daily resample)
+  P(maxDD > 40%) < 10%; ATTRIBUTION gate: cumulative funding-leg P&L > 0
+  AND > |cumulative price-leg P&L| (else it is accidental trend, not
+  carry → FAIL); CORRELATION gate: daily-return correlation with the E6
+  backtest book ≤ 0.5.
+- Data window: Binance funding 2020→2026 is FRESH — evaluation #1.
+  Price marks partially REUSE the BTC/ETH/SOL daily window (BTC has 4
+  prior evaluations, all trend-family). Recorded mitigations: (a) the
+  signal is funding, not price — orthogonal mechanism; (b) the final 6
+  months (2026-01→2026-07) are a ONCE-ONLY OOS segment: evaluated once,
+  after the 2020→2025 body, results reported separately with their n.
+  Yahoo 60-day window: not used (burned, QA-only).
+- Kill criterion: ANY gate fails → E7 falsified on this window.
+  Recorded and abandoned — no retune, no threshold search, no venue
+  shopping.
+- On pass: candidate SECOND sleeve alongside E4-v2/E6 — enters its own
+  Phase 4 shadow (funding-sim verified against live prints; adaptation
+  to be registered before shadow starts). NOT capital. Deployment-venue
+  fees (US-regulated perps) must be re-verified in writing before any
+  live sizing; Binance fixture is for evaluation only.
+
+---
+
 ## E4-v2 → FundedNext DEPLOYMENT PLAN — REGISTERED 2026-07-16
 
 MC on E4-v2's return stream vs Stellar 2-step rules (static 10% max
