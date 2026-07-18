@@ -22,3 +22,9 @@ signals.jsonl
 *.env
 __pycache__/
 *.zip
+data/
+signals.jsonl
+.gates/
+*.env
+__pycache__/
+*.zip
