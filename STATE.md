@@ -44,11 +44,38 @@ Updated: 2026-07-18 (session: harness verification + ledger reconciliation)
 - Shadow status at close: e4v2 logged through bar 2026-07-17, signal
   ON (r28 +0.0056, w 0.4502); e6 accruing; zero error lines.
 
-## Single next action (2026-07-18)
+## 2026-07-18c session (E7 registered, evaluated, falsified)
 
-Register the next hypothesis via /register-hypothesis with a mechanism
-distinct from the falsified families (always-on momentum, ORB, VWAP
-reversion) — the E4-v2/E6 shadow runs itself until ~2026-10-14.
+- E7 (perp funding-rate carry, standalone) registered pre-test with
+  Tim's parameter sign-offs (threshold plateau ±10/15/20, PF>=1.2
+  adaptation, Binance source + 10bps/side fixture), then evaluated
+  ONCE. VERDICT: FAIL 2/8 gates — n=129 episodes, PF 0.58, both halves
+  negative, plateau all negative, maxDD -63.7%, attribution gate FAIL:
+  funding leg +0.333 real but price leg -1.033 (carry is priced).
+  corr(E6) -0.486 (n=2,022 days) passed; worthless at PF 0.58.
+  Once-only OOS 2026H1: -5.31%, Sharpe -1.66 (n=181 days). Recorded in
+  HYPOTHESES.md; abandoned per kill criterion. Log:
+  logs/phase2_e7_2026-07-18.log. Carry family now falsified alongside
+  momentum, ORB, VWAP reversion.
+- New data: Binance monthly funding archives via data.binance.vision
+  (fapi geo-blocked): data/funding/, 226 CSVs, BTC/ETH 2020-01→
+  2026-06-30, SOL from 2020-09 listing. Window burned (evaluation #1).
+- New code: e7_carry.py (pure logic), test_e7.py (6/6 machinery tests
+  incl. no-lookahead, run BEFORE the evaluation), phase2_e7.py.
+- Harness bug found: hooks invoke gate_guard.py by RELATIVE path, so a
+  shell cwd left outside repo root breaks every hooked tool (deadlock;
+  escaped via subagent-created delegating stub, since removed).
+  Durable fix: prefix the hook command with the project dir (e.g.
+  $CLAUDE_PROJECT_DIR) in .claude/settings.json. NOT yet applied.
+- Baseline suite green all session: test_signals.py ALL 5 PASS.
+
+## Single next action (2026-07-18c)
+
+Fix the hook path in .claude/settings.json (make gate_guard.py
+invocation cwd-independent), then register the next hypothesis — the
+mechanism must now clear FIVE falsified families (always-on momentum,
+ORB, VWAP reversion, last-hour flow, funding carry); E4-v2/E6 shadow
+runs itself until ~2026-10-14.
 
 ---
 
