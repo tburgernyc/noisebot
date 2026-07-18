@@ -28,3 +28,4 @@ signals.jsonl
 *.env
 __pycache__/
 *.zip
+logs/shadow_cron.log
