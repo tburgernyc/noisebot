@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 test_signals.py)",
+      "Bash(python3 backtest.py*)",
+      "Bash(python3 quote_databento_cost.py)",
+      "Bash(git status*)", "Bash(git diff*)", "Bash(git log*)",
+      "Bash(git add*)", "Bash(git commit*)",
+      "Bash(ls*)", "Bash(mkdir -p data*)", "Bash(cat *)",
+      "Bash(pip install*)"
+    ],
+    "deny": [
+      "Bash(rm -rf*)", "Bash(git push --force*)",
+      "Read(.env*)", "Read(**/*.pem)", "Read(**/*key*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/gate_guard.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/post_edit_tests.py"
+          }
+        ]
+      }
+    ]
+  }
+}

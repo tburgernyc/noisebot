@@ -4,3 +4,9 @@ __pycache__/
 data/
 .env
 data/shadow_*.json
+data/
+signals.jsonl
+.gates/
+*.env
+__pycache__/
+*.zip
