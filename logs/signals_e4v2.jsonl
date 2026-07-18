@@ -1,1 +1,4 @@
 {"computed_at": "2026-07-15T10:30:17.532240+00:00", "strategy": "e4v2", "source": "yahoo", "bar_date": "2026-07-14", "close": 64956.11328125, "r28": -0.009825, "signal": 0, "vol30_ann": 0.3386, "w": 0.0}
+{"computed_at": "2026-07-17T04:10:03.326722+00:00", "strategy": "e4v2", "source": "yahoo", "bar_date": "2026-07-15", "close": 64712.375, "r28": 0.004563, "signal": 1, "vol30_ann": 0.3372, "w": 0.4449}
+{"computed_at": "2026-07-18T04:10:02.355503+00:00", "strategy": "e4v2", "source": "yahoo", "bar_date": "2026-07-16", "close": 63789.28125, "r28": 0.014195, "signal": 1, "vol30_ann": 0.3388, "w": 0.4427}
+{"computed_at": "2026-07-18T20:20:52.198805+00:00", "strategy": "e4v2", "source": "yahoo", "bar_date": "2026-07-17", "close": 63899.4609375, "r28": 0.005644, "signal": 1, "vol30_ann": 0.3332, "w": 0.4502}

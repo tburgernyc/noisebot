@@ -20,9 +20,12 @@ Updated: 2026-07-18 (session: harness verification + ledger reconciliation)
 - Prior next action (build shadow loggers) confirmed DONE pre-session.
 - NOT done, on the record: quote_databento_cost.py not run (blocker is
   not a data pull); no backtests run; no hypotheses tested.
-- Open housekeeping: two clones exist (~/noise_bot runs crons,
-  ~/noisebot is the working copy) — pick the canonical one before the
-  next substantive session and align commits.
+- RESOLVED same day: clones consolidated. ~/noisebot is canonical.
+  Data (databento_1m.parquet + crypto dailies) and live shadow logs
+  migrated (append-only superset verified by prefix hash); crons
+  repointed to ~/noisebot and both shadow scripts verified running
+  there (logged bar 2026-07-17, e4v2 signal ON, w=0.4502); old clone
+  renamed to ~/noise_bot.retired-2026-07-18 (had zero unique commits).
 
 ## Single next action (2026-07-18)
 
