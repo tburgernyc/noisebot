@@ -570,3 +570,21 @@ archived verbatim at imports/STATE_cloud-session_2026-07-19.md.
 - Trust caveat: unverified externally-run numbers. If any decision were
   ever to hinge on H3-EXT being *wrong* (it is a FAIL, so none should),
   re-derivation from the delivered artifacts is required first.
+
+---
+
+## WINDOW-LEDGER NOTE — 2026-07-19: PB4 dataset pulled, window consumed EXTERNALLY
+
+Databento GLBX.MDP3 ohlcv-1d, parent symbology, expiry ladders for 9
+CME roots (ES NQ 6E 6B 6A 6J GC SI CL), 2019-01-01 → 2026-07-01.
+Pulled 2026-07-19 by Tim locally ($6.66, quoted before spend; cap $25);
+files in ~/pb4_pull/pb4_out/, verified here (9 CSVs, all spans
+2019-01→2026-06-30, multi-contract ladders; note: parent symbology
+includes calendar-spread instruments — outrights must be filtered
+downstream). Feeds a hypothesis called "PB4" being evaluated in a
+SEPARATE Claude session — NOT registered in this file. Ledger status:
+**this window's evaluation #1 is consumed externally by PB4.** Any
+future registration here against daily futures ladders 2019→2026 must
+count that mining and cite whatever PB4 record Tim imports (as was
+done for H3-EXT). Overlap caveat: ES daily also appears in
+data/es_zn_1d.csv (E5, 1 evaluation) — partial reuse for ES.
