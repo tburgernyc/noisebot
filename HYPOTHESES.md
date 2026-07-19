@@ -530,3 +530,43 @@ errors, live matches recomputation); (2) signal is ON (r28>0) at
 purchase; (3) firm rules verified in writing: BTC CFD weekend quoting
 on MT5, EA add-on cost, inactivity-breach rule, Stellar consistency
 rules, profit split. Registered sizing: vol target 10%. One account.
+
+---
+
+## H3-EXT — EXTERNAL RECORD, imported 2026-07-18: AMD/IFVG EURUSD intraday (SMC/ICT family)
+
+PROVENANCE (read first): registered AND evaluated in a PARALLEL cloud
+session that worked from a stale snapshot of this project — NOT in
+this repo. Its numbers cannot be independently re-derived here (the
+artifacts — AMD_IFVG_SPEC.md, amd_ifvg_signals.py, amd_ifvg_backtest.py,
+test_amd_ifvg.py 10/10, run_phase2.py, phase2_report.json,
+trades_full.csv — live in that session's workspace, delivered to Tim
+directly). Imported because failed tests stay on the record regardless
+of where they ran. The "H3" ID is that session's own numbering (it had
+migrated the lost H1/H2 as registered-untestable); namespaced here as
+H3-EXT to avoid collision with the canonical E-series. Source document
+archived verbatim at imports/STATE_cloud-session_2026-07-19.md.
+
+- Mechanism claimed: SMC/ICT "AMD cycle" (accumulation–manipulation–
+  distribution session structure) with inverse fair-value-gap (IFVG)
+  entries on EURUSD, prop-firm risk shell; MQL5 was the eventual
+  target. Distinct family from everything in the E-series: discretionary-
+  style intraday FX structure, mechanized.
+- Evaluation (per that session's Phase 2 gate, single run): Dukascopy
+  EURUSD M5, 2023-07-01 → 2026-06-30.
+- VERDICT: **FAIL.** PF 0.657, n=297. Both halves negative. All 5
+  plateau variants negative. Loses GROSS of costs (−0.59 pips/trade
+  before commissions) — not a friction failure, a sign failure. WR 3.2
+  standard errors below breakeven. Non-negotiable #1 held: no MT5/MQL5
+  code was built.
+- Standing: SEVENTH falsified family — SMC/ICT intraday FX structure —
+  alongside always-on momentum, ORB, VWAP reversion, last-hour flow,
+  funding carry, fast crypto trend. Recorded and abandoned; any future
+  SMC/ICT-flavored registration must cite this record and explain why
+  its mechanism escapes a gross-of-costs sign failure.
+- Window ledger: Dukascopy EURUSD M5 2023-07→2026-06 — evaluation #1,
+  burned (externally). If EURUSD M5 data ever enters this repo, that
+  window counts as mined.
+- Trust caveat: unverified externally-run numbers. If any decision were
+  ever to hinge on H3-EXT being *wrong* (it is a FAIL, so none should),
+  re-derivation from the delivered artifacts is required first.

@@ -95,9 +95,37 @@ Updated: 2026-07-18 (session: harness verification + ledger reconciliation)
   effect on /hooks reload or next session start.
 - Tests at close: test_signals.py 5/5, test_e7.py 6/6, test_e8.py 8/8.
 
-## Single next action (2026-07-18d)
+## 2026-07-18e session (parallel-session import; E7 resubmission refused)
 
-Run /hooks once (or restart) to load the fixed hook config, then
+- A /register-hypothesis resubmission of E7 (funding carry, materially
+  identical spec) was REFUSED without writing an entry: E7 is already
+  on the record as falsified today (FAIL 2/8, n=129, PF 0.58; carry is
+  priced) and its kill criterion plus the burned Binance funding
+  2020→2026 window bar re-registration. Nothing was re-run.
+- Discovered: a PARALLEL cloud session has been working from a STALE
+  snapshot of this project (pre-Databento-purchase, pre-E-series). Its
+  STATE.md arrived here; archived verbatim with a non-canonical header
+  at imports/STATE_cloud-session_2026-07-19.md. Its staged next action
+  (local Databento pull, 2023-07→2026-07) should be CANCELLED: the
+  data is already owned (data/databento_1m.parquet) and the window
+  overlaps the burned MNQ window (4 evaluations).
+- Imported from that session: H3-EXT (AMD/IFVG EURUSD, SMC/ICT family)
+  — registered and evaluated THERE, VERDICT FAIL (PF 0.657, n=297,
+  both halves negative, all 5 plateau variants negative, loses gross
+  of costs). Recorded in HYPOTHESES.md with full provenance caveat
+  (numbers not independently re-derivable here). That makes SEVEN
+  falsified families.
+- pull_databento.py stored at repo root at Tim's request (verbatim from
+  the cloud session, plus a canonical-repo caveat block added to the
+  docstring: do not run for selection; window ledger governs any spend).
+  It is Tim-run-locally tooling — the key stays in his env; nothing in
+  this repo invokes it.
+
+## Single next action (2026-07-18e)
+
+FIRST: close out the parallel cloud session — tell it the pull is
+cancelled (data already owned, window burned) so it never runs.
+Then: run /hooks once (or restart) to load the fixed hook config, then
 register the next hypothesis — mechanism must clear SIX falsified
 families (always-on momentum, ORB, VWAP reversion, last-hour flow,
 funding carry, fast crypto trend); E4-v2/E6 shadow runs itself until
