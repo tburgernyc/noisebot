@@ -120,6 +120,10 @@ Updated: 2026-07-18 (session: harness verification + ledger reconciliation)
   docstring: do not run for selection; window ledger governs any spend).
   It is Tim-run-locally tooling — the key stays in his env; nothing in
   this repo invokes it.
+- Session close (2026-07-19): test_signals.py ALL 5 PASS; tree clean;
+  all imports committed and pushed (93f9eb6). No hypotheses evaluated
+  in this repo this session (E7 resubmission refused pre-registration;
+  H3-EXT was evaluated externally and only recorded here).
 
 ## Single next action (2026-07-18e)
 
