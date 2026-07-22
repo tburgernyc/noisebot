@@ -132,6 +132,26 @@ Updated: 2026-07-18 (session: harness verification + ledger reconciliation)
   in this repo this session (E7 resubmission refused pre-registration;
   H3-EXT was evaluated externally and only recorded here).
 
+## 2026-07-21 session close (PB4 pull-assist wrap-up)
+
+- Sessions 2026-07-19→21 in this repo were pull-assist + ledger only:
+  located/verified Tim's pull_databento_daily.py (frozen PB4 spec),
+  venv at ~/pb4_pull/.venv (databento 0.81.0), first run failed on a
+  placeholder DATABENTO_API_KEY (env had literal dummy value — real
+  key never entered this conversation); Tim ran the pull himself
+  ($6.66). Acceptance 5/5 PASS on ~/pb4_pull/pb4_out/ (9 ladders,
+  2019-01→2026-06-30, multi-contract; spread instruments present in
+  parent symbology — flagged for downstream filtering). CSVs untouched;
+  no continuous contracts, no backtests here.
+- Window-ledger note committed (2aa6299): daily-ladder window eval #1
+  consumed EXTERNALLY by PB4. PB4 outcome must be imported here pass
+  OR fail (H3-EXT precedent).
+- No hypotheses registered or evaluated in this repo this session.
+- Shadow accruing through bar 2026-07-19: e4v2 signal ON (r28 +0.023,
+  w 0.463); e6 eq_index 4.697; zero error lines. New log lines
+  committed at close.
+- test_signals.py at close: ALL 5 PASS.
+
 ## Single next action (2026-07-18e)
 
 FIRST: close out the parallel cloud session — tell it the pull is

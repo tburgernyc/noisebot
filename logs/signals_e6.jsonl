@@ -2,3 +2,5 @@
 {"computed_at": "2026-07-17T04:15:02.744820+00:00", "strategy": "e6", "source": "yahoo", "bar_date": "2026-07-15", "weights": {"BTC": 0.085, "ETH": 0.1131, "SOL": 0.0979}, "book_ret_last": 0.000336, "eq_index": 4.7174}
 {"computed_at": "2026-07-18T04:15:02.086589+00:00", "strategy": "e6", "source": "yahoo", "bar_date": "2026-07-16", "weights": {"BTC": 0.174, "ETH": 0.1131, "SOL": 0.0979}, "book_ret_last": -0.008577, "eq_index": 4.6769}
 {"computed_at": "2026-07-18T20:20:54.357991+00:00", "strategy": "e6", "source": "yahoo", "bar_date": "2026-07-17", "weights": {"BTC": 0.174, "ETH": 0.1131, "SOL": 0.0979}, "book_ret_last": -0.001386, "eq_index": 4.6704}
+{"computed_at": "2026-07-20T04:15:02.406134+00:00", "strategy": "e6", "source": "yahoo", "bar_date": "2026-07-18", "weights": {"BTC": 0.174, "ETH": 0.1131, "SOL": 0.0979}, "book_ret_last": 0.004282, "eq_index": 4.6904}
+{"computed_at": "2026-07-21T04:15:02.752449+00:00", "strategy": "e6", "source": "yahoo", "bar_date": "2026-07-19", "weights": {"BTC": 0.174, "ETH": 0.1131, "SOL": 0.0979}, "book_ret_last": 0.001491, "eq_index": 4.6974}

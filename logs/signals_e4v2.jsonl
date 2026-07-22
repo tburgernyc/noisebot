@@ -2,3 +2,5 @@
 {"computed_at": "2026-07-17T04:10:03.326722+00:00", "strategy": "e4v2", "source": "yahoo", "bar_date": "2026-07-15", "close": 64712.375, "r28": 0.004563, "signal": 1, "vol30_ann": 0.3372, "w": 0.4449}
 {"computed_at": "2026-07-18T04:10:02.355503+00:00", "strategy": "e4v2", "source": "yahoo", "bar_date": "2026-07-16", "close": 63789.28125, "r28": 0.014195, "signal": 1, "vol30_ann": 0.3388, "w": 0.4427}
 {"computed_at": "2026-07-18T20:20:52.198805+00:00", "strategy": "e4v2", "source": "yahoo", "bar_date": "2026-07-17", "close": 63899.4609375, "r28": 0.005644, "signal": 1, "vol30_ann": 0.3332, "w": 0.4502}
+{"computed_at": "2026-07-20T04:10:03.360314+00:00", "strategy": "e4v2", "source": "yahoo", "bar_date": "2026-07-18", "close": 64796.6015625, "r28": 0.008669, "signal": 1, "vol30_ann": 0.3255, "w": 0.4608}
+{"computed_at": "2026-07-21T04:10:03.637542+00:00", "strategy": "e4v2", "source": "yahoo", "bar_date": "2026-07-19", "close": 64690.8046875, "r28": 0.022981, "signal": 1, "vol30_ann": 0.324, "w": 0.463}
