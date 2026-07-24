@@ -203,16 +203,58 @@ Updated: 2026-07-24 (session: E9/E11/E12 term-structure batch — 2 falsified, 1
   E12's logged run used 5.0 (conservative vs its 3.0) and was NOT re-run.
 - Shadow E4-v2/E6 still accruing (logs updated); untouched by this batch.
 
-## Single next action (2026-07-24)
+## 2026-07-24b session (E14 threshold-rebalancing: registered, falsified; edge well found dry)
+
+- Tim asked for an all-out push to discover/create/test a NEW profitable
+  edge ("do not stop until achieved"). REFRAMED up front: cannot promise a
+  PASS without p-hacking (testing until one clears by luck is the exact
+  failure the program exists to prevent); committed instead to the most
+  aggressive DISCIPLINED discovery pass — register, test once, report.
+- Focused deep-research sweep (106 agents, 25 claims adversarially
+  verified; report tasks/wt2kwaacd.output). ALL FOUR seed candidates
+  KILLED on their own evidence: (A) overnight equity drift documented
+  DEAD post-2021 by its NY-Fed discoverers (2-3am window → ~0 since 2021;
+  NightShares ETFs launched 2022, closed 14mo later); (B) VIX/VX carry
+  ruinous (12-29% DD gross) + no micro contract; (C) crypto
+  cross-sectional collapses to 5-MIN reversal (market-making), no slow
+  structural premium; (D) month-end FX fix flow sub-friction, 72% reverts
+  by next noon, WM fix widened 2015. One distinct lead survived:
+  institutional 60/40 THRESHOLD rebalancing (Harvey-Mazzoleni-Melone 2025).
+- Registered E14 (threshold band-breach 60/40 rebalancing, equity leg on
+  MES) pre-test with the constitution-required E5-escape argument
+  (magnitude-conditioning on band breach vs falsified E5 firing every
+  month-end on tiny drifts). Reused es_zn_1d.csv (disclosed 2nd use); no
+  data/spend. Machinery-first: rebalance_threshold.py (pure) + test_e14.py
+  11/11 on SYNTHETIC (roll-safe returns, trigger dir, sub-band silence,
+  exact P&L, roll exclusion, book reset, no-lookahead) before the window.
+- E14 VERDICT: **FAIL — 4/6.** n=**17** trigger trades at δ=0.04 over 16
+  YEARS (28/17/14 at δ 0.03/0.04/0.05; ≈1 trade/yr, gate ≥100 FAIL);
+  half2 −$891 (FAIL); PF 1.350 PASS, plateau all-positive PASS
+  (+$1,322/+$516/+$134), ruin gate 4.3% PASS. This is an UNDERPOWERED,
+  too-rare-to-matter death — DIFFERENT from E5's sub-friction death, and
+  regardless of edge sign ~1 trade/yr is no strategy for a $2-5k account.
+  At n=17 the positive PF/plateau are NOISE. TENTH falsified family; per
+  the registration the MANDATED-REBALANCING FAMILY IS CLOSED (calendar +
+  threshold both dead). No retune permitted.
+- Baseline test_signals.py 5/5 PASS at close. E4-v2/E6 shadow untouched.
+- HONEST STRATEGIC FINDING: the accessible distinct-large-retail-edge well
+  is now effectively DRY (10 falsified families; the research + E14
+  exhausted the one surviving lead). Forward value is NOT more discovery —
+  it is validating/combining what already passes. The two legitimate paths
+  need NO new edge: (1) resolve PB4 → unlock an E12(FX-carry)×E4-v2(trend)
+  blend (uncorrelated sleeves → deployable Sharpe neither clears alone);
+  (2) let the E4-v2/E6 Phase-4 shadow mature to ~2026-10-14 (the real gate
+  to capital). Both are Tim-decision / calendar-bound, not code-bound.
+
+## Single next action (2026-07-24b)
 
 Tim to identify what "PB4" is (it lives only in the parallel cloud
-session) — it determines whether E12's edge (84% in the 2019–2026
-PB4-overlap window) is real or contaminated; until PB4 is reconciled,
-E12 stays confirmed-but-marginal and does NOT proceed to shadow
-registration. (If E12 is pursued later, the only ruin-gate-passing
-version is the low-return ~7.4%-vol one; a 15%-vol deployment is
-falsified by the audit. A E12×E4-v2 carry/trend diversifier blend would
-be a NEW registration.)
+session) — it is now the gating decision for the ONLY live path to a
+deployable result: the E12(FX-carry)×E4-v2(crypto-trend) blend, whose FX
+leg is E12 and is contaminated/marginal until PB4 is reconciled. Until
+then: no new discovery registrations (edge well is dry — manufacturing
+more would be padding/p-hacking); E4-v2/E6 shadow continues accruing to
+~2026-10-14 untouched.
 
 ---
 

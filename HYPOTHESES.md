@@ -1079,3 +1079,35 @@ no band search, no hold search, no third variant ever.
 
 Window ledger: es_zn_1d.csv 2010-06→2026-07 — second registered use
 (first was E5, calendar signal). No new data, no Databento spend.
+
+### 2026-07-24 — E14 evaluation (single registered run; log: logs/phase2_e14_2026-07-24.log)
+Machinery verified first on SYNTHETIC data (test_e14.py, 11/11: roll-safe
+returns, trigger direction, sub-band silence, exact P&L, roll exclusion in
+isolation, book reset, no-lookahead truncation invariance) BEFORE the
+window was touched.
+E14 VERDICT: **FAIL — 4/6 gates.** Threshold band-breach 60/40
+rebalancing, ES/ZN 2010-06→2026-07, equity leg on MES, $2.50 RT + 1 tick.
+- n = **17** trigger trades at the main band δ=0.04 (gate ≥100, **FAIL**) —
+  28 at δ=0.03, 17 at δ=0.04, 14 at δ=0.05 over 16 YEARS (≈1 trade/yr).
+- PF 1.350 (PASS, >1.3).
+- half1 +$1,408 / half2 −$891 (half2 negative, **FAIL**).
+- Plateau δ{0.03/0.04/0.05} = +$1,322 / +$516 / +$134 — all positive
+  (PASS "all>0"), monotone-decreasing (wider band → fewer trades, friction
+  eats the smaller sample).
+- P(maxDD>$2,500/ct) 4.3% (PASS, <10%); realized maxDD −$1,338/ct.
+READ — this is an **UNDERPOWERED fail, a DIFFERENT death from E5, not the
+sub-friction wall.** The threshold rule simply does not FIRE often enough
+to be a standalone retail strategy: ~1 trade/year is not a strategy for a
+$2–5k account regardless of edge sign (~$30/trade × ~1/yr ≈ nothing). At
+n=17 the positive PF and all-positive plateau are NOISE, not evidence. The
+registered prior-against (b) — "threshold triggers are infrequent, n≥100
+MAY NOT be reached … NOT a reason to loosen the band post-hoc" — is exactly
+what happened; loosening δ further or holding longer or widening the
+universe to manufacture triggers is FORBIDDEN (sweep/retune). Kill
+criterion applies: E14 falsified. **TENTH falsified family, and per the
+registration the MANDATED-REBALANCING FAMILY IS NOW CLOSED** — calendar
+(E5: real but sub-friction) + threshold (E14: too rare to power a test or
+matter at retail) are both dead. No third variant, no band search, no hold
+search, ever.
+Window ledger: es_zn_1d.csv 2010-06→2026-07 second registered use consumed
+(disclosed at registration). No Databento spend.
