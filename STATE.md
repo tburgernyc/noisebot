@@ -1,6 +1,6 @@
 # STATE — noise_bot
 
-Updated: 2026-07-18 (session: harness verification + ledger reconciliation)
+Updated: 2026-07-24 (session: E9/E11/E12 term-structure batch — 2 falsified, 1 marginal pass audited)
 
 ## 2026-07-18 session
 
@@ -152,15 +152,67 @@ Updated: 2026-07-18 (session: harness verification + ledger reconciliation)
   committed at close.
 - test_signals.py at close: ALL 5 PASS.
 
-## Single next action (2026-07-18e)
+## 2026-07-24 session (term-structure batch: E9/E11/E12 registered + evaluated)
 
-FIRST: close out the parallel cloud session — tell it the pull is
-cancelled (data already owned, window burned) so it never runs.
-Then: run /hooks once (or restart) to load the fixed hook config, then
-register the next hypothesis — mechanism must clear SIX falsified
-families (always-on momentum, ORB, VWAP reversion, last-hour flow,
-funding carry, fast crypto trend); E4-v2/E6 shadow runs itself until
-~2026-10-14 and remains the only live pipeline work.
+- Deep-research sweep (108 agents, 25 claims adversarially verified)
+  converged on ONE surviving family distinct from our 7 falsified ones:
+  commodity/FX futures TERM-STRUCTURE risk premia. Rejected on
+  verification or our own cost bar: Goldman-roll front-run, VIX-ETP
+  flow, naive long-only roll (a "tax"), social sentiment, crypto term
+  basis. Report archived: tasks/wt914flw4.output.
+- Registered pre-test (Tim delegated the choice; forex added at his
+  request): E9 commodity basis-momentum, E11 commodity hedger-positioning
+  (CFTC CoT), E12 FX carry via futures term structure. E10 intentionally
+  RESERVED/UNUSED (dropped commodity carry, swapped for E12). Window
+  amended 2005→2010-06-06 PRE-DATA (GLBX.MDP3 availability).
+- DATABENTO KEY IS AVAILABLE IN-SESSION (real db- prefix, 32 chars) —
+  pulls can run here, not only Tim-local (updates the prior record).
+  Pulled 22 daily expiry ladders (14 commodity + 8 FX), 2010-06→2026-06,
+  quoted $43.63 / ~$100 first. Free CFTC CoT built: data/cot/cot_hedgers.csv
+  (12,082 weekly rows, 14 roots, hedgers net-short all 14 — theory-consistent).
+- NEW CODE (all committed/pushed): term_structure.py (pure), ladder_loader.py,
+  cot_loader.py, termstructure_backtest.py (engine+gates), phase2_termstructure.py
+  (one-shot driver). Machinery proven on SYNTHETIC first: test_term_structure.py
+  28/28 (no-splice, no-lookahead, decode, signs, neg-price guard),
+  test_backtest.py engine (aligned earns / reversed loses / book-level
+  truncation-invariance exact). Negative-WTI Apr-2020 (CLK0 −2.67) handled
+  by an outcome-neutral non-positive-price guard.
+- RESULTS (each single registered run; all in HYPOTHESES.md):
+  * E9  FAIL 1/6 — n=294, PF 1.08, half1 −0.25, plateau only lb6 positive
+    (12/18 negative), P(maxDD>40%) 0.84, Sharpe 0.03 < bench 0.31, final
+    0.87x, maxDD −52%. 8th falsified family.
+  * E11 FAIL 2/7 — n=146, corr(E9) −0.008 PASS (genuinely distinct), but
+    PF 1.10, half1 −0.02, plateau 4wk negative, P(maxDD>40%) 0.77, Sharpe
+    0.12 < 0.31, final 1.16x, maxDD −56%. Real+distinct but sub-friction
+    (E5/E7 signature). 9th falsified family.
+  * E12 PASS 6/6 — n=115, PF 1.72, both halves +, plateau {1,3,6}mo all
+    positive & monotone, P(maxDD>40%) 0.038, Sharpe 0.334 vs bench −0.092,
+    final 1.55x, maxDD −24%. First pass since E4-v2/E6, on fresh FX data.
+- E12 INDEPENDENT AUDIT (gate-auditor, clean re-derivation): CONFIRMED
+  all 6 gates reproduce exactly; no lookahead, correct carry sign, costs
+  over-charged, no fabrication. BUT stands with TWO SERIOUS CAVEATS:
+  (A) ruin-gate pass is LITERAL-ONLY — gross-cap binds 96.6% of days
+  holding vol at ~7.4% not 15%; at the registered 15% target the same
+  book gives P(maxDD>40%)=0.56, maxDD −45.5% (fail). The 0.038 does NOT
+  license 15%-vol deployment; this session's "vol-targeting tamed the
+  skew" claim was WRONG and is corrected on the record. (B) ~84% of P&L
+  is 2019–2026 (overlaps unresolved PB4 on 4/8 names incl. AUD); clean
+  2010–2018 is FLAT (Sharpe 0.089). Verdict: confirmed-but-MARGINAL —
+  same wall as E4/E5 (real signal, capital-constrained). NO gate marker.
+- Bug fixed post-audit: episode_pnl hard-coded 5.0 bps → parameterized;
+  E12's logged run used 5.0 (conservative vs its 3.0) and was NOT re-run.
+- Shadow E4-v2/E6 still accruing (logs updated); untouched by this batch.
+
+## Single next action (2026-07-24)
+
+Tim to identify what "PB4" is (it lives only in the parallel cloud
+session) — it determines whether E12's edge (84% in the 2019–2026
+PB4-overlap window) is real or contaminated; until PB4 is reconciled,
+E12 stays confirmed-but-marginal and does NOT proceed to shadow
+registration. (If E12 is pursued later, the only ruin-gate-passing
+version is the low-return ~7.4%-vol one; a 15%-vol deployment is
+falsified by the audit. A E12×E4-v2 carry/trend diversifier blend would
+be a NEW registration.)
 
 ---
 
