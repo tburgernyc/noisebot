@@ -694,13 +694,15 @@ positive; plateau all positive; beats passive long-only commodity
 Sharpe. FALSIFIED if ANY gate fails.
 
 Data window: Databento GLBX.MDP3 ohlcv-1d, parent symbology, 14 roots,
-2005-01-01 → 2026-06-30 — FRESH, evaluation #1 on commodity daily
-ladders in this repo. Cost quoted before pull; key stays in env.
+2010-06-06 → 2026-06-30 — FRESH, evaluation #1 on commodity daily
+ladders in this repo. (Window AMENDED 2026-07-23 from a mistaken
+2005-01-01 start to the dataset's real availability start 2010-06-06,
+confirmed by metadata.get_cost; amended PRE-DATA, zero results seen —
+not a post-hoc window choice. ~16 yrs, ample for n≥100.) Cost quoted before pull; key stays in env.
 Overlap disclosure: GC/SI/CL 2019→2026 sub-span overlaps the PB4
 window (mechanism unknown). Mitigations recorded: (a) E9's signal is
 basis-momentum (curvature), almost certainly orthogonal to whatever
-PB4 is; (b) 2005-2019 is clean for those three and is the bulk of the
-sample; (c) the other 11 roots are fully fresh; (d) PB4's own CSVs are
+PB4 is; (b) 2010-2019 is clean for those three (over half the sample); (c) the other 11 roots are fully fresh; (d) PB4's own CSVs are
 NOT reused — a clean pull is taken. When Tim imports the PB4 record,
 reconcile.
 
@@ -757,8 +759,11 @@ Prediction if TRUE: PF > 1.3 net, n ≥ 100, both halves positive,
 plateau all positive, corr(E9) ≤ 0.5. FALSIFIED if ANY gate fails
 (explicitly including corr(E9) > 0.5 → verdict "redundant with E9").
 
-Data window: CFTC CoT 2006-01 → 2026-06 — FRESH positioning window,
-never used here (evaluation #1). Prices REUSE E9's commodity window
+Data window: CFTC CoT (Disaggregated, available from 2006) aligned to
+the price-bounded evaluation window 2010-06-06 → 2026-06-30 — FRESH
+positioning window, never used here (evaluation #1). The backtest runs
+only where BOTH CoT and price exist → 2010-06 → 2026-06. Prices REUSE
+E9's commodity window
 (disclosed shared-window multiplicity above — that window is mined
 twice by design; both single-evaluation). Free data for the signal;
 no incremental Databento spend beyond E9's pull.
@@ -825,10 +830,11 @@ negative skew, beats passive FX beta. FALSIFIED if ANY gate fails —
 the ruin gate is the pre-declared most-likely failure.
 
 Data window: Databento GLBX.MDP3 ohlcv-1d, parent symbology, 8 FX
-roots, 2005-01-01 → 2026-06-30 — FRESH FX window, evaluation #1. Cost
-quoted before pull. Overlap disclosure: 6E/6B/6A/6J 2019→2026 sub-span
+roots, 2010-06-06 → 2026-06-30 — FRESH FX window, evaluation #1.
+(Window AMENDED 2026-07-23 from 2005 to the dataset start 2010-06-06,
+pre-data, same as E9.) Cost quoted before pull. Overlap disclosure: 6E/6B/6A/6J 2019→2026 sub-span
 overlaps the PB4 window (mechanism unknown); mitigations mirror E9 —
-signal is FX carry (orthogonal to plausible PB4 mechanisms), 2005-2019
+signal is FX carry (orthogonal to plausible PB4 mechanisms), 2010-2019
 clean, 6C/6S/6N/6M fully fresh, PB4 CSVs not reused. Reconcile on PB4
 import.
 
@@ -838,9 +844,13 @@ retune, no universe change, no threshold search.
 ---
 
 ### Window-ledger update — 2026-07-23 (E9/E11/E12 registration)
-- Commodity daily ladders (14 GLBX roots) 2005→2026: reserved for E9
-  (eval #1) and E11 (shares the price window — mined twice, disclosed).
-- FX daily ladders (8 GLBX roots) 2005→2026: reserved for E12 (eval #1).
-- Both pulls are FRESH; GC/SI/CL and 6E/6B/6A/6J carry a 2019→2026
-  PB4-overlap caveat (recorded per-entry). No data pulled yet — costs
-  quoted before any Databento spend.
+- Window AMENDED pre-data to 2010-06-06 start (GLBX.MDP3 availability;
+  get_cost confirmed 2010-06-06). Applies to E9, E11, E12.
+- Commodity daily ladders (14 GLBX roots) 2010-06→2026: reserved for
+  E9 (eval #1) and E11 (shares the price window — mined twice,
+  disclosed). Quoted $41.43.
+- FX daily ladders (8 GLBX roots) 2010-06→2026: reserved for E12
+  (eval #1). Quoted $2.20.
+- Both pulls FRESH; GC/SI/CL and 6E/6B/6A/6J carry a 2019→2026
+  PB4-overlap caveat (recorded per-entry). Quote total $43.63 of ~$100
+  credit; Tim authorized discretionary spend 2026-07-23.
