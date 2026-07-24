@@ -798,6 +798,37 @@ no incremental Databento spend beyond E9's pull.
 Kill criterion: any gate fails → E11 falsified. No retune, no filter
 additions, no post-hoc double-sort.
 
+### 2026-07-24 — E11 evaluation (single registered run; log: logs/phase2_e11_2026-07-24.log)
+E11 VERDICT: **FAIL — 2/7 gates.** Commodity hedger-positioning (CFTC
+CoT, FFM-2018 hedging pressure), 14 GLBX roots 2010-06→2026-06, tercile
+L/S, 15% vol, 5 bps/side, release-lag 4d.
+- n = 146 episodes (PASS, ≥100).
+- corr(E9) −0.008 (PASS — genuinely orthogonal to price basis-momentum;
+  the positioning mechanism IS distinct, as registered).
+- PF 1.097 (gate >1.3, FAIL).
+- Both halves: half1 −0.018 / half2 +0.381 (half1 negative, FAIL).
+- Plateau HP window {4 / 13 / 26 wk} = −0.210 / +0.158 / +0.373
+  (4-week cell negative, gate "all > 0" FAIL).
+- Bootstrap P(maxDD>40%) 0.766 (gate <0.10, FAIL).
+- Sharpe(net) 0.124 vs long-only commodity benchmark 0.312 (FAIL).
+- final equity 1.158, realized maxDD −56.3%.
+Read: the mechanism is REAL and DISTINCT — hedgers net-short across all
+14 roots as normal-backwardation predicts, and the book is essentially
+uncorrelated with E9 (−0.008) — but the compensation is too small and
+too crash-prone to clear the bar at honest costs. The registered
+prior-against held (Fan & Zhang 2024: single-sort HP Sharpe 0.24; our
+broad vol-targeted construction reached only 0.12 net). Same signature
+as E5 (month-end) and E7 (funding carry): a genuine structural premium
+that is an institutional edge, not a retail one. The long-window plateau
+cells (13/26 wk) being positive is NOT a rescue — the 4-wk cell fails
+and even the positive cells sit at PF ~1.1, below benchmark. Kill
+criterion applies: E11 falsified. Recorded and abandoned — no retune, no
+filter additions, no post-hoc double-sort. NINTH falsified family. The
+corr(E9) pass means E11 is INDEPENDENTLY dead, not redundant with E9.
+Window ledger: commodity price window 2010-06→2026-06 second (final)
+registered use consumed (disclosed at registration); CoT positioning
+2010-2026 evaluation #1 burned.
+
 ---
 
 ## E12 — REGISTERED 2026-07-23 (pre-test): FX carry via futures term structure (cross-sectional, monthly)
