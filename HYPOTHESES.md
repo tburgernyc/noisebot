@@ -934,6 +934,45 @@ permitted regardless of audit outcome — audit either confirms the pass
 or finds a defect that voids it.
 Window ledger: FX daily ladders (8 GLBX roots) 2010-06→2026-06
 evaluation #1 CONSUMED (burned).
+
+#### 2026-07-24 — E12 INDEPENDENT GATE AUDIT (gate-auditor, clean re-derivation)
+VERDICT: **CONFIRMED PASS — stands WITH TWO SERIOUS CAVEATS; no defect
+voids it.** The auditor re-derived every gate from the raw CSVs in its
+own script; all 6 reproduce EXACTLY. Failure-mode hunt: sign CLEAN
+(AUD/NZD/MXN long, JPY/CHF/EUR short — textbook carry; book is
+USD-neutral so the edge is cross-sectional carry, not USD drift/trend);
+lookahead CLEAN (real-data truncation invariance = 0.000e+00; weights
+effective strictly after t; vol estimate shifted); costs CHARGED and
+if anything over-charged; no fabricated returns.
+- **CAVEAT A — the ruin-gate pass is LITERAL-ONLY (corrects this
+  session's wrong narrative).** P(maxDD>40%)=0.038 passed NOT because
+  "vol-targeting tamed the skew" (that claim above is WRONG) but because
+  the gross cap Σ|w|≤2.0 binds on 96.6% of days, holding the book at
+  ~7.4% realized vol — the 15% target is INACTIVE. Re-scaled to the
+  registered 15% target the SAME book gives P(maxDD>40%)=0.557,
+  maxDD −45.5% — a catastrophic FAIL. Faithful to the (cap-inclusive)
+  registered rule, so not a coding defect, BUT the 0.038 does NOT
+  license deployment at 15% vol. At cap-limited sizing the book earns
+  ~2.5%/yr (Sharpe 0.334 × 7.4% vol) — crash-safe but low-return.
+- **CAVEAT B — edge concentrated in the PB4-overlap window.** ~84% of
+  P&L is 2019–2026 (Sharpe 0.710); clean 2010–2018 is FLAT (sum +0.078,
+  Sharpe 0.089). The recent window overlaps unresolved PB4 on 4/8 names
+  (incl. AUD, the largest carry name). Combined with absolute Sharpe
+  0.334 and n just clearing 100, the margin is thin.
+- Minor: episode_pnl used a hard-coded 5.0 bps (E12 registered 3.0) —
+  CONSERVATIVE, made PF 1.724 vs 1.756; fixed post-audit, E12 NOT
+  re-run (kill criterion). Signal uses second-NEAREST (next serial
+  month, Δt≈1mo) not the literally-written "second-deferred quarterly";
+  sign correct and annualized, but a deviation from the spec text.
+  Author's "sparse early cross-section" caveat was OVERSTATED (8
+  currencies present almost every month).
+NET: a CONFIRMED but MARGINAL pass — real cross-sectional FX carry,
+correctly built, but (A) not crash-safe at deployment sizing and (B)
+edge is a recent-window, PB4-overlapping phenomenon. NO gate marker.
+Same binding constraint as E4/E5: the signal is real; at safe sizing
+the return is too small to matter for a small account. Next step is
+PB4 reconciliation, NOT shadow registration, unless Tim decides the
+low-return crash-safe version is worth shadowing anyway.
 - Window AMENDED pre-data to 2010-06-06 start (GLBX.MDP3 availability;
   get_cost confirmed 2010-06-06). Applies to E9, E11, E12.
 - Commodity daily ladders (14 GLBX roots) 2010-06→2026: reserved for

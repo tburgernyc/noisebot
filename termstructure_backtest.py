@@ -82,7 +82,7 @@ def run_book(signal_me: pd.DataFrame, daily_ret: pd.DataFrame,
     net = (gross - costs).dropna()
 
     return dict(net=net, legw=legw, w_daily=w_daily, w_scaled=w_scaled,
-                daily_ret=dr)
+                daily_ret=dr, bps=bps_per_side)
 
 
 def episode_pnl(book: dict) -> pd.Series:
@@ -98,7 +98,12 @@ def episode_pnl(book: dict) -> pd.Series:
         seg = contrib.loc[mask, root].sum()
         avg_w = w.loc[(w.index >= ep["start"]) & (w.index <= ep["end"]),
                       root].abs().mean()
-        rt_cost = 2.0 * (5.0 / 1e4) * (avg_w if np.isfinite(avg_w) else 0.0)
+        # use the book's registered per-side cost (was hard-coded 5.0 bps —
+        # gate-audit fix 2026-07-24; E12's LOGGED run predated this and used
+        # 5.0 bps, which is CONSERVATIVE vs its registered 3.0 bps and was
+        # NOT re-run, per the one-shot kill criterion).
+        bps = book.get("bps", 5.0)
+        rt_cost = 2.0 * (bps / 1e4) * (avg_w if np.isfinite(avg_w) else 0.0)
         pnls.append(seg - rt_cost)
     return pd.Series(pnls, dtype="float64")
 
