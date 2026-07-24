@@ -709,6 +709,33 @@ reconcile.
 Kill criterion: any gate fails → E9 falsified on this window. No
 retune, no universe reshuffle, no threshold/lookback search.
 
+### 2026-07-24 — E9 evaluation (single registered run; log: logs/phase2_e9_2026-07-24.log)
+E9 VERDICT: **FAIL — 1/6 gates.** Commodity basis-momentum, 14 GLBX
+roots 2010-06→2026-06, tercile L/S, 15% vol target, 5 bps/side.
+- n = 294 episodes (PASS, gate ≥100).
+- PF 1.081 (gate >1.3, FAIL).
+- Both halves: half1 −0.254 / half2 +0.327 (half1 negative, FAIL).
+- Plateau lookback {6 / 12 / 18} = +2.404 / −0.126 / −0.351 — only the
+  6-month cell positive (gate "all > 0", FAIL).
+- Bootstrap P(maxDD>40%) 0.845 (gate <0.10, FAIL).
+- Sharpe(net) 0.026 vs long-only commodity benchmark 0.312 (FAIL —
+  worse than passive commodity beta).
+- final equity 0.874 (net loss over the window), realized maxDD −52.0%.
+Read: the liquidity-provision premium of Boons & Prado (18.38% p.a.
+in-sample, 21 commodities since 1959) does NOT survive on the liquid
+14-root CME universe 2010-2026 at honest costs — consistent with the
+registered priors-against (gross / in-sample / 60-yr inflation +
+documented 2024-25 crowding/attenuation). The plateau's single positive
+cell (lookback 6) is NOT a rescue: the registered plateau demands ALL
+cells positive precisely to catch a horizon-fragile fit; adopting the
+6-month cell post-hoc would be textbook sweep-and-select and is
+forbidden. Kill criterion applies: E9 falsified on this window.
+Recorded and abandoned — no retune, no universe reshuffle, no lookback
+search. EIGHTH falsified family (commodity basis-momentum).
+Window ledger: commodity daily ladders (14 GLBX roots) 2010-06→2026-06
+evaluation #1 CONSUMED (burned). E11 shares this price window — a
+disclosed second registered use (positioning signal, not price).
+
 ---
 
 ## E11 — REGISTERED 2026-07-23 (pre-test): Commodity hedger-positioning pressure (CFTC CoT, cross-sectional)

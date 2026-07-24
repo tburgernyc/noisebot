@@ -1,0 +1,15 @@
+!! This driver RUNS the registered one-shot evaluation. Proceed only on explicit go.
+
+Loading commodity panels ...
+
+============================================================
+E9 commodity basis-momentum VERDICT: FAIL
+============================================================
+  final_equity=0.874  maxDD=-0.5198  Sharpe=0.026  PF=1.081  n=294
+  [PASS] n>=100               294
+  [FAIL] PF>1.3               1.081
+  [FAIL] both_halves>0        (np.float64(-0.2536), np.float64(0.3272))
+  [FAIL] plateau_all>0        {6: np.float64(2.4044), 12: np.float64(-0.1256), 18: np.float64(-0.3506)}
+  [FAIL] P(maxDD>40%)<10%     0.8449
+  [FAIL] Sharpe>=benchmark    (0.026, 0.312)
+  plateau totals: {6: np.float64(2.404447826023629), 12: np.float64(-0.12563855180970673), 18: np.float64(-0.3505588301942686)}
