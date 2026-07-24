@@ -588,3 +588,259 @@ future registration here against daily futures ladders 2019→2026 must
 count that mining and cite whatever PB4 record Tim imports (as was
 done for H3-EXT). Overlap caveat: ES daily also appears in
 data/es_zn_1d.csv (E5, 1 evaluation) — partial reuse for ES.
+
+---
+
+## COMMODITY / FX TERM-STRUCTURE FAMILY — REGISTERED 2026-07-23 (E9, E11, E12)
+
+Provenance: deep-research sweep (2026-07-23; 108 agents, 25 claims
+adversarially verified, 19 confirmed / 6 killed; report archived at
+tasks/wt914flw4.output). The sweep converged on ONE surviving family
+distinct from our seven falsified families — commodity/FX futures
+term-structure risk premia. Rejected on verification or on our own
+cost bar: Goldman-roll front-run (arbitraged away), leveraged-VIX-ETP
+flow (unprofitable after costs), naive long-only roll yield (now a
+"tax"), social-sentiment (behavioral, refuted 0-3), crypto term-basis
+(refuted 0-3). A specific "commodity carry nets Sharpe 1.12 after
+costs" claim was REFUTED 0-3 — carried as a prior-against below.
+
+E10 INTENTIONALLY RESERVED / UNUSED: it was to be cross-sectional
+commodity term-structure carry; DROPPED pre-registration in favour of
+E12 (FX carry) — better small-account implementability and it breaks
+the commodity-family concentration. Recorded so the gap in numbering
+is explicit, not an error.
+
+SHARED-WINDOW MULTIPLICITY (disclosed up front): E9 and E11 share the
+SAME commodity daily-futures price window for P&L (E11's signal is free
+CoT positioning, but its returns are computed on E9's prices) — that
+window is therefore mined TWICE; both are registered, both evaluated
+once, neither may be reshuffled after seeing data. E12 uses a separate
+FX futures window.
+
+IMPLEMENTABILITY (registered, applies to all three): the full
+cross-section is backtested at 1 unit for EDGE MEASUREMENT ONLY.
+Whether the edge survives reduction to the tradable CME-micro subset
+(MGC/MCL/MHG… for commodities; M6E/M6A/M6B for FX) is a SEPARATE
+future registration — E4-v2 precedent. A pass here is a measured edge,
+never a deployment claim.
+
+MACHINERY-FIRST (registered): for each, no-lookahead + roll-no-splice +
+tercile-construction unit tests are written and must pass on SYNTHETIC
+data BEFORE the registered window is touched (E7/E8 precedent).
+
+---
+
+## E9 — REGISTERED 2026-07-23 (pre-test): Commodity basis-momentum (cross-sectional, monthly)
+
+Economic rationale: compensated risk premium for LIQUIDITY PROVISION.
+Boons & Prado (Journal of Finance 74(1):239-279, 2019) build a signal
+from the difference between momentum in the first-nearby vs
+second-nearby futures; it earns 18.38% p.a. (t=6.73), Sharpe ~0.9 over
+21 commodities since 1959, and is shown INCONSISTENT with storage,
+inventory, and hedging-pressure — it captures returns to speculators
+who absorb supply/demand imbalances when intermediaries' market-
+clearing ability is impaired. Mechanistically distinct from all seven
+falsified families: a curve curvature/slope-change signal, not price
+trend (always-on/ORB/fast-crypto momentum), not carry (E7 perp
+funding), not VWAP reversion, not last-hour gamma, not SMC/ICT, not
+month-end rebalancing.
+Priors-against (registered): (a) headline figures are gross, in-sample,
+60+ years; (b) 2024-2025 work (Uhl 2025; QuantPedia commodity-factor
+crowding; Fan 2025) documents attenuation/crowding → expect live <<
+in-sample; (c) implementability gap (above).
+
+Universe (FIXED, 14 GLBX roots, chosen for a liquid second-nearby;
+ICE softs deliberately excluded to stay one-dataset): CL, NG, HO, RB,
+GC, SI, HG, ZC, ZW, ZS, ZL, ZM, LE, HE.
+
+Rules (ALL fixed before any run):
+- Continuous series, NO SPLICE (per constitution): first-nearby = the
+  nearest contract NOT in its delivery month; second-nearby = the next
+  expiry after that. Roll on the last trading day of the month before
+  the nearby enters its delivery month. Each day's return is taken
+  WITHIN a single contract; roll days use the held contract's return
+  only — never a cross-contract splice.
+- Signal at each month-end: BM_i = mom_nearby_i − mom_2ndnearby_i,
+  where mom = trailing 12-month cumulative within-contract total
+  return of the (resp.) nearby / second-nearby series (no skip month).
+- Cross-sectional rank of BM_i across the 14 roots each month-end:
+  LONG the top tercile, SHORT the bottom tercile, equal-weight within
+  tercile. Middle tercile flat.
+- Sizing: scale the whole long/short book to 15% annualized portfolio
+  vol (EWMA λ=0.94 on daily book returns, min 60 obs, √252); gross
+  exposure capped Σ|w_i| ≤ 2.0 with pro-rata scale-down. No leverage
+  beyond that.
+- Rebalance monthly (last trading day); fill at NEXT session open,
+  1-tick adverse. Full rebalance, no bands.
+- Costs: pessimistic flat fixture 5 bps/side ALL-IN on traded notional
+  |Δw_i| (dominates true 1-tick + $2.50/ct RT for these liquid roots;
+  registered as the pessimistic fixture, logged as such).
+- Trade/episode for PF and n: per-commodity episode from position open
+  (enters a tercile) to close (exits/flips) — E6 convention.
+- Registered plateau (ALL must be net positive, never best-of):
+  momentum lookback 6 / 12 / 18 months. Tercile breakpoint, vol
+  target, gross cap, and cost fixture are FIXED, not swept.
+
+Gates (E6-adapted portfolio set, ALL required): n ≥ 100 episodes;
+PF > 1.3; both sample halves (by calendar time) net positive; plateau
+all > 0; bootstrap (10k paths, daily book-return resample) P(maxDD >
+40%) < 10%; Sharpe(net) ≥ Sharpe of the equal-weight LONG-ONLY basket
+of the same 14 nearby series vol-targeted to 15% on the identical
+window (hardest honest benchmark — must beat passive long commodity
+beta).
+
+Prediction if TRUE: PF > 1.3 net on n ≥ 100 episodes; both halves
+positive; plateau all positive; beats passive long-only commodity
+Sharpe. FALSIFIED if ANY gate fails.
+
+Data window: Databento GLBX.MDP3 ohlcv-1d, parent symbology, 14 roots,
+2005-01-01 → 2026-06-30 — FRESH, evaluation #1 on commodity daily
+ladders in this repo. Cost quoted before pull; key stays in env.
+Overlap disclosure: GC/SI/CL 2019→2026 sub-span overlaps the PB4
+window (mechanism unknown). Mitigations recorded: (a) E9's signal is
+basis-momentum (curvature), almost certainly orthogonal to whatever
+PB4 is; (b) 2005-2019 is clean for those three and is the bulk of the
+sample; (c) the other 11 roots are fully fresh; (d) PB4's own CSVs are
+NOT reused — a clean pull is taken. When Tim imports the PB4 record,
+reconcile.
+
+Kill criterion: any gate fails → E9 falsified on this window. No
+retune, no universe reshuffle, no threshold/lookback search.
+
+---
+
+## E11 — REGISTERED 2026-07-23 (pre-test): Commodity hedger-positioning pressure (CFTC CoT, cross-sectional)
+
+Economic rationale: the cleanest MANDATED flow in the sweep. Commercial
+hedgers (producers/consumers) are structurally FORCED to hedge; long
+speculators must be compensated to absorb the net short-hedging
+imbalance (Keynes/Cootner/Hirshleifer normal-backwardation; De Roon-
+Nijman-Veld; Basu & Miffre 2013; Fernandez-Perez/Fuertes/Miffre 2018,
+"Hedging Pressure Everywhere"). The signal is POSITIONING, not price —
+maximally orthogonal to every price-based family we have falsified.
+Prior-against (registered): single-sort hedging pressure is construction-
+dependent and can be WEAK (Fan & Zhang 2024, J. Futures Markets:
+average 1.5%, Sharpe 0.24 standalone). The bet is that the FFM-2018
+broad-universe, normalized, vol-targeted construction clears the bar on
+2006→2026; if it does not, E11 is falsified — no rescue by adding
+filters or switching to a double-sort after the fact.
+
+Universe (FIXED): the same 14 roots as E9 (CoT reported for all).
+
+Rules (ALL fixed before any run):
+- Signal from CFTC Disaggregated CoT (weekly): hedging pressure
+  HP_i = (ProducerMerchantProcessorUser long − short) /
+  (Producer... long + short), i.e. commercial net position normalized
+  to [−1, +1], averaged over the trailing 13 weekly reports. Hedgers
+  most NET SHORT (most negative HP) → speculators most compensated.
+- Cross-sectional rank of HP_i each month-end (using the latest CoT as
+  of that date, release-lag respected — Tuesday snapshot, Friday
+  release, no lookahead): LONG the bottom tercile of HP (hedgers most
+  net short), SHORT the top tercile (hedgers most net long). Middle
+  flat.
+- Sizing, rebalance, fills, costs, trade/episode: IDENTICAL to E9
+  (15% vol, Σ|w|≤2, monthly, next-open 1-tick adverse, 5 bps/side,
+  per-commodity episode). Returns computed on E9's commodity price
+  series.
+- Registered plateau (ALL must be net positive): HP averaging window
+  4 / 13 / 26 weeks. Normalization, tercile breakpoint, vol target,
+  cost fixture FIXED.
+
+Gates (E6-adapted set, ALL required): n ≥ 100 episodes; PF > 1.3; both
+halves positive; plateau all > 0; bootstrap P(maxDD>40%) < 10%;
+Sharpe(net) ≥ same long-only-commodity benchmark as E9; PLUS a
+DISTINCTNESS gate: daily-return correlation with the E9 book ≤ 0.5
+(if E11 is just E9 in disguise it earns nothing new → recorded as
+redundant).
+
+Prediction if TRUE: PF > 1.3 net, n ≥ 100, both halves positive,
+plateau all positive, corr(E9) ≤ 0.5. FALSIFIED if ANY gate fails
+(explicitly including corr(E9) > 0.5 → verdict "redundant with E9").
+
+Data window: CFTC CoT 2006-01 → 2026-06 — FRESH positioning window,
+never used here (evaluation #1). Prices REUSE E9's commodity window
+(disclosed shared-window multiplicity above — that window is mined
+twice by design; both single-evaluation). Free data for the signal;
+no incremental Databento spend beyond E9's pull.
+
+Kill criterion: any gate fails → E11 falsified. No retune, no filter
+additions, no post-hoc double-sort.
+
+---
+
+## E12 — REGISTERED 2026-07-23 (pre-test): FX carry via futures term structure (cross-sectional, monthly)
+
+Economic rationale: the FX carry risk premium — compensation for
+currency crash risk and funding-liquidity risk (Lustig-Roussanov-
+Verdelhan 2011; Brunnermeier-Nagel-Pedersen 2009). High-interest-rate
+currencies trade at a forward discount; by covered interest parity the
+interest differential is embedded in the FX futures curve (near vs
+deferred quarterly), so carry is read straight off the term structure —
+the SAME machinery as E9, applied to a different asset class. Distinct
+from the record: NOT E7 (crypto perpetual-funding carry — different
+driver and asset), NOT H3-EXT/SMC-ICT (intraday FX price STRUCTURE —
+unrelated mechanism and horizon; cited per the standing rule that any
+FX registration references that falsified record). Forex added at Tim's
+request; it also breaks E9/E11's commodity-family concentration and is
+the most small-account-implementable of the three (deep, cheap CME FX
+micros).
+Prior-against (registered): FX carry is famously crash-prone (negative
+skew — "picking up pennies in front of a steamroller"); the
+P(maxDD>40%) ruin gate is the live test, exactly the gate E4 failed.
+"Carry" broadly is a concept the program has touched (E7) — flagged,
+though the driver here is distinct.
+
+Universe (FIXED, 8 USD-quoted CME FX futures): 6E (EUR), 6J (JPY),
+6B (GBP), 6A (AUD), 6C (CAD), 6S (CHF), 6N (NZD), 6M (MXN).
+
+Rules (ALL fixed before any run):
+- Carry_i at each month-end = annualized log(front / second-deferred
+  quarterly)/Δt for currency i, sign-normalized so that a currency at
+  a forward DISCOUNT (higher local short rate) has POSITIVE carry.
+  Roll/no-splice handled as in E9 (within-contract returns; the
+  quarterly-cycle roll uses the held contract only).
+- Cross-sectional rank each month-end: LONG the top 3 carry currencies,
+  SHORT the bottom 3; middle 2 flat. (Fixed 3/3 given only 8 names —
+  the FX analog of a tercile.)
+- Sizing: book scaled to 15% annualized vol (EWMA λ=0.94, min 60 obs,
+  √252); gross Σ|w_i| ≤ 2.0, pro-rata scale-down.
+- Rebalance monthly (last trading day); fill next-session open, 1-tick
+  adverse. Costs: pessimistic flat 3 bps/side ALL-IN on |Δw_i| (liquid
+  FX futures; registered fixture).
+- Trade/episode for PF and n: per-currency episode from open to
+  close/flip.
+- Registered plateau (ALL must be net positive): carry smoothing
+  1 / 3 / 6-month trailing average. Long/short count (3/3), vol target,
+  gross cap, cost fixture FIXED.
+
+Gates (E6-adapted set, ALL required): n ≥ 100 currency-episodes;
+PF > 1.3; both halves positive; plateau all > 0; bootstrap
+P(maxDD>40%) < 10%; Sharpe(net) ≥ Sharpe of an equal-weight passive
+long-all-8-vs-USD basket (the "FX beta") vol-targeted to 15% on the
+identical window.
+
+Prediction if TRUE: PF > 1.3 net, n ≥ 100 episodes, both halves
+positive, plateau all positive, clears the ruin gate despite carry's
+negative skew, beats passive FX beta. FALSIFIED if ANY gate fails —
+the ruin gate is the pre-declared most-likely failure.
+
+Data window: Databento GLBX.MDP3 ohlcv-1d, parent symbology, 8 FX
+roots, 2005-01-01 → 2026-06-30 — FRESH FX window, evaluation #1. Cost
+quoted before pull. Overlap disclosure: 6E/6B/6A/6J 2019→2026 sub-span
+overlaps the PB4 window (mechanism unknown); mitigations mirror E9 —
+signal is FX carry (orthogonal to plausible PB4 mechanisms), 2005-2019
+clean, 6C/6S/6N/6M fully fresh, PB4 CSVs not reused. Reconcile on PB4
+import.
+
+Kill criterion: any gate fails → E12 falsified on this window. No
+retune, no universe change, no threshold search.
+
+---
+
+### Window-ledger update — 2026-07-23 (E9/E11/E12 registration)
+- Commodity daily ladders (14 GLBX roots) 2005→2026: reserved for E9
+  (eval #1) and E11 (shares the price window — mined twice, disclosed).
+- FX daily ladders (8 GLBX roots) 2005→2026: reserved for E12 (eval #1).
+- Both pulls are FRESH; GC/SI/CL and 6E/6B/6A/6J carry a 2019→2026
+  PB4-overlap caveat (recorded per-entry). No data pulled yet — costs
+  quoted before any Databento spend.
