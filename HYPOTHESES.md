@@ -899,9 +899,41 @@ import.
 Kill criterion: any gate fails → E12 falsified on this window. No
 retune, no universe change, no threshold search.
 
----
-
-### Window-ledger update — 2026-07-23 (E9/E11/E12 registration)
+### 2026-07-24 — E12 evaluation (single registered run; log: logs/phase2_e12_2026-07-24.log)
+E12 VERDICT: **PASS — 6/6 gates.** FX carry via futures term structure,
+8 CME FX roots 2010-06→2026-06, long 3 / short 3, 15% vol, 3 bps/side,
+carry smoothing 3m.
+- n = 115 currency-episodes (PASS, ≥100 — just clears).
+- PF 1.724 (PASS >1.3).
+- Both halves: half1 +0.093 / half2 +0.398 (both PASS).
+- Plateau smoothing {1 / 3 / 6 mo} = +0.507 / +0.546 / +0.654 — ALL
+  positive AND monotone increasing (a robust plateau, unlike E9/E11's
+  single fragile cell).
+- Bootstrap P(maxDD>40%) 0.038 (PASS <0.10 — this was the PRE-DECLARED
+  likely-failure gate; vol-targeting + 3/3 diversification tamed carry's
+  negative skew).
+- Sharpe(net) 0.334 vs passive long-FX benchmark −0.092 (PASS).
+- final equity 1.546 (~+54.6% over ~16 yr), realized maxDD −23.7%.
+HONEST CAVEATS ON THE PASS (do not let a green verdict hide these):
+(1) Sharpe 0.334 is MODEST (E4-v2 1.38, E6 0.97); and the benchmark it
+beat is NEGATIVE (passive long-FX lost as USD strengthened 2010-2026),
+so that gate was a low bar — the ABSOLUTE edge is small. (2) n=115 just
+clears 100. (3) PB4 OVERLAP: 6E/6B/6A/6J 2019→2026 overlaps the unknown
+PB4 window; 2010-2019 is clean and 6C/6S/6N/6M fully fresh, but if PB4
+is FX carry this is partially contaminated — reconcile on PB4 import.
+(4) early FX years had a sparse second-nearby → thin cross-section
+pre-2012.
+DECISION (E4-v2/E6 precedent): a PASS means PROCEED TO INDEPENDENT AUDIT
+then Phase-4 shadow validation — NOT capital, and NO gate marker yet.
+Next: gate-auditor re-derivation from scratch in a clean context BEFORE
+any shadow registration. If the audit confirms, register a 90-day daily
+shadow (FX carry signal + weights logged, live matching recomputation)
+adapted as E4-v2's was; deployment math and US-regulated-venue fees are
+SEPARATE future registrations. Kill criterion note: no retune is
+permitted regardless of audit outcome — audit either confirms the pass
+or finds a defect that voids it.
+Window ledger: FX daily ladders (8 GLBX roots) 2010-06→2026-06
+evaluation #1 CONSUMED (burned).
 - Window AMENDED pre-data to 2010-06-06 start (GLBX.MDP3 availability;
   get_cost confirmed 2010-06-06). Applies to E9, E11, E12.
 - Commodity daily ladders (14 GLBX roots) 2010-06→2026: reserved for
