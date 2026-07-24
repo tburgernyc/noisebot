@@ -983,3 +983,99 @@ low-return crash-safe version is worth shadowing anyway.
 - Both pulls FRESH; GC/SI/CL and 6E/6B/6A/6J carry a 2019→2026
   PB4-overlap caveat (recorded per-entry). Quote total $43.63 of ~$100
   credit; Tim authorized discretionary spend 2026-07-23.
+
+---
+
+## E14 — REGISTERED 2026-07-24 (pre-test): Threshold (band-breach) 60/40 rebalancing pressure, equity leg (MES)
+
+Provenance: 2026-07-24 focused deep-research sweep (106 agents, 25
+claims adversarially verified; report tasks/wt2kwaacd.output). All four
+seed candidates were KILLED on their own evidence — (A) overnight equity
+drift documented DEAD post-2021 by its NY-Fed discoverers; (B) VIX/VX
+carry ruinous + no micro contract; (C) crypto cross-sectional collapses
+to 5-min reversal; (D) month-end FX fix flow sub-friction + 72% reverts
+by next noon. The ONE distinct, micro-expressible lead that survived:
+institutional 60/40 THRESHOLD rebalancing (Harvey-Mazzoleni-Melone 2025,
+"The Unintended Consequences of Rebalancing"), separately measured from
+the calendar signal we already falsified as E5.
+
+Economic rationale (who is FORCED): balanced / target-date / 60-40
+mandates rebalance not only on the calendar (E5) but on THRESHOLD
+breaches — when the equity weight drifts past a tolerance band, the
+mandate FORCES a rebalancing trade regardless of date: sell the
+outperformer, buy the underperformer. HMM-2025 measure the threshold
+signal separately: 1-SD → ~16 bps next-day equity reversal (opposite
+~4 bps in bonds), reverting within two weeks; explicitly "a by-product
+of mandates that likely conveys little information about fundamentals."
+Distinct from all nine falsified families (a calendar/threshold-forced
+allocation flow, not price trend/reversion/carry/gamma/positioning).
+
+EXPLICIT E5 RELATIONSHIP (constitution-required — E5 is falsified; any
+rebalancing-flavored registration must cite it and explain escape):
+E5 = CALENDAR month-end rebalancing (ES), FALSIFIED — real but
+sub-friction (PF 1.06, n=771, ~$2.85/trade, ruin gate 86.8%). E14 is
+NOT an E5 retune: it is the paper's OTHER, separately-measured signal
+with a DIFFERENT TRIGGER (band-breach, not date) that E5 did not
+register or test. E5 fired on every month-end regardless of drift —
+mostly on tiny divergences, which is precisely why its per-trade edge
+was microscopic. E14 fires ONLY after a large drift breaches a band —
+conditioning the forced flow on HIGH-MAGNITUDE events, so the per-trade
+edge should be materially larger. That magnitude-conditioning is the
+registered bet. IF E14 ALSO FAILS, the mandated-rebalancing family is
+CLOSED (calendar + threshold both dead) — no third variant.
+
+Rules (ALL fixed before any run):
+- Data: ES.v.0 + ZN.v.0 daily, data/es_zn_1d.csv, 2010-06-07 →
+  2026-07-14. Equity leg = ES; bond leg = ZN. DISCLOSED SECOND
+  registered use of E5's window (signal differs entirely; window mined
+  twice, both single-eval; E9/E11 shared-window precedent).
+- Returns: close-to-close on the continuous series. Roll days handled
+  per constitution — a 1-day trade (enter close t, exit close t+1) is
+  EXCLUDED if a roll falls between t and t+1 (no cross-contract splice
+  in a trade's P&L); roll dates from the .v.0 instrument_id change.
+- Synthetic 60/40 book: start w_eq=0.60, w_bd=0.40 at sample start;
+  each day the weights drift by realized ES/ZN close-to-close returns
+  (no contributions/withdrawals); RESET to 60/40 at each rebalance.
+- Trigger at close t: rebalance FIRES when |w_eq,t − 0.60| ≥ δ. On
+  fire: equity-leg signal d = −sign(w_eq,t − 0.60) (short the overweight
+  leg, with the forced flow; long if equity underweight). Reset book to
+  60/40 after firing.
+- Trade (deployable expression): EQUITY LEG on MES ($5/pt) — where ~16
+  of the 20 bps sits, and the flagship micro. Enter close t, exit close
+  t+1 (MOC-style), 1-tick (0.25 = $1.25 on MES) adverse each side +
+  $2.50/ct RT. Consecutive triggers chain as separate 1-day trades.
+  The ES/ZN PAIR is measured and reported as corroboration only; the
+  tradeable claim is MES-only (no liquid micro bond leg exists).
+- Registered plateau (ALL must be net positive, never best-of): band
+  δ ∈ {0.03, 0.04, 0.05}. Hold (t+1), reference weight 0.60, and the
+  cost fixture are FIXED, not swept.
+
+Gates (E5-adapted set, ALL required): n ≥ 100 trigger trades;
+PF > 1.3; both sample halves (by calendar time) net positive; plateau
+all > 0; bootstrap (10k paths, daily 1-day-trade resample)
+P(maxDD > $2,500/ct) < 10% (overnight holds → NOT prop-compatible,
+IBKR-account edge — identical ruin gate to E5 for comparability).
+
+Prediction if TRUE: PF > 1.3 net on n ≥ 100 trigger trades; both halves
+positive; plateau all positive; ruin gate < 10%. FALSIFIED if ANY gate
+fails.
+
+Registered priors-against: (a) same ~16 bps magnitude as falsified E5 —
+sub-friction death is a live risk; (b) threshold triggers are
+infrequent, so n ≥ 100 MAY NOT be reached over 16 years — a legitimate
+falsification if so, NOT a reason to loosen the band post-hoc;
+(c) HMM-2025 coefficients are in-sample predictive regressions
+1997–2023, not net tradable returns.
+
+Machinery-first (registered, E7/E8/E9 precedent): no-lookahead +
+trigger-construction + book-drift + roll-exclusion unit tests written
+and passing on SYNTHETIC data BEFORE the registered window is touched.
+
+Decision rule: PASS → candidate sleeve → Phase 4 shadow (adapted as
+E4-v2's was), NEVER straight to capital; deployment math and
+US-regulated-venue specifics are separate future registrations. FAIL →
+recorded and abandoned; mandated-rebalancing family CLOSED; no retune,
+no band search, no hold search, no third variant ever.
+
+Window ledger: es_zn_1d.csv 2010-06→2026-07 — second registered use
+(first was E5, calendar signal). No new data, no Databento spend.
