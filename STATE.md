@@ -246,6 +246,21 @@ Updated: 2026-07-24 (session: E9/E11/E12 term-structure batch — 2 falsified, 1
   (2) let the E4-v2/E6 Phase-4 shadow mature to ~2026-10-14 (the real gate
   to capital). Both are Tim-decision / calendar-bound, not code-bound.
 
+- GAP-FILL SWEEP (Tim-requested "exhaust the last gaps"; 89 agents,
+  report tasks/w5108tdqm.output) — CLEAN NULL, nothing survives both walls
+  + distinctness: (1a) crypto BAB/low-vol not even an identified crypto
+  factor (subsumed by size+momentum); (1b) crypto SIZE real in-sample
+  2014-18 but net-of-cost survivability REFUTED 0-3, illiquidity trap on
+  tiny coins; (1c) crypto staking-yield/basis carry ZERO evidence,
+  unevidenced; (2) treasury roll-down carry = same global-recession crash
+  profile as marginal E12 FX carry (KMPV 2018), and the one distinct rates
+  mechanism (dealer balance-sheet inconvenience yields, He-Nagel-Song) is
+  crisis-only (COVID/2008) + levered-basis-desk capital, not a retail
+  roll-down book. NONE registered (registering a refuted-survivability or
+  same-as-E12 candidate would be knowingly-doomed padding). Two research
+  sweeps (195 agents total) + E14 now EXHAUST the accessible
+  distinct-large-retail-edge space. Discovery is closed for this cycle.
+
 ## Single next action (2026-07-24b)
 
 Tim to identify what "PB4" is (it lives only in the parallel cloud
