@@ -7,7 +7,8 @@ import pandas as pd
 
 from e17_pivot_structure import (compute_signals, run_backtest, max_dd,
                                   find_pivots, shift_for_availability,
-                                  _trend_state_machine, _assert_daily_spacing)
+                                  _trend_state_machine, _assert_daily_spacing,
+                                  run_backtest_voltarget)
 
 RNG = np.random.default_rng(5)
 
@@ -129,6 +130,45 @@ def test_spacing_guard_catches_coarsened_data():
     print("PASS spacing_guard_accepts_true_daily_data")
 
 
+def test_voltarget_runs_and_reduces_exposure_vs_full_size():
+    """E17-v2 candidate machinery check (NOT a registered evaluation).
+    Must run without crashing, produce finite equity, and -- the actual
+    point of the fix -- realize a SMALLER max drawdown than full-size
+    run_backtest on the same signal, at some cost to the raw return.
+
+    Needs its own higher-volatility fixture: the module-level `df` used
+    by every other test in this file has ~10% annualized realized vol
+    (by design, to keep pivot detection well-behaved), which never
+    exceeds the 15% vol_target -- so w_tgt clips at 1.0 throughout and
+    voltarget is silently identical to full-size on that series (not a
+    bug, just not a meaningful test of the sizing logic). Real BTC runs
+    40-80%+ annualized, so this fixture is closer to what the actual
+    registered evaluation would see."""
+    n = 2000
+    shocks = RNG.normal(0, 0.035, n)  # ~67% annualized -- BTC-like, not the shared fixture's ~10%
+    drift = np.where(np.arange(n) % 400 < 200, 0.0015, -0.0008)
+    close = 100.0 * np.cumprod(1 + drift + shocks)
+    high = close * (1 + np.abs(RNG.normal(0, 0.01, n)))
+    low = close * (1 - np.abs(RNG.normal(0, 0.01, n)))
+    open_ = np.concatenate([[100.0], close[:-1]]) * (1 + RNG.normal(0, 0.002, n))
+    idx = pd.date_range("2024-01-01", periods=n, freq="D")
+    hv_df = pd.DataFrame({"open": open_, "high": high, "low": low, "close": close}, index=idx)
+
+    hv_sig = compute_signals(hv_df)
+    trades_full, daily_full, eq_full = run_backtest(hv_df, hv_sig, allow_short=False)
+    trades_vt, daily_vt, eq_vt = run_backtest_voltarget(hv_df, hv_sig, vol_target=0.15,
+                                                        vol_win=30, allow_short=False)
+    assert np.isfinite(eq_vt.values).all() and (eq_vt.values > 0).all()
+    dd_full, dd_vt = max_dd(eq_full.values), max_dd(eq_vt.values)
+    assert abs(dd_vt) < abs(dd_full), (
+        f"vol-targeted maxDD ({dd_vt:.1%}) should be smaller in magnitude than "
+        f"full-size maxDD ({dd_full:.1%}) -- sizing fix isn't reducing tail risk "
+        f"on a high-vol fixture where it should clearly bind")
+    print(f"PASS voltarget_runs_and_reduces_exposure_vs_full_size "
+          f"(full: final={eq_full.iloc[-1]:.2f}x maxDD={dd_full:.1%}; "
+          f"vol-targeted: final={eq_vt.iloc[-1]:.2f}x maxDD={dd_vt:.1%})")
+
+
 if __name__ == "__main__":
     test_pivot_availability_shift_is_correct()
     test_fast_matches_bruteforce_reaction_tracking()
@@ -137,4 +177,5 @@ if __name__ == "__main__":
     test_backtest_runs_long_flat_and_long_short()
     test_performance_fast_beats_bruteforce()
     test_spacing_guard_catches_coarsened_data()
+    test_voltarget_runs_and_reduces_exposure_vs_full_size()
     print("\nALL TESTS PASS (synthetic data only -- not a registered evaluation)")

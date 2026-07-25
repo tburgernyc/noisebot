@@ -293,6 +293,49 @@ def run_backtest(df: pd.DataFrame, sig: pd.DataFrame, *, fee: float = 0.0035,
     return pd.DataFrame(trades), daily, pd.Series(eq, index=df.index)
 
 
+def run_backtest_voltarget(df: pd.DataFrame, sig: pd.DataFrame, *, fee: float = 0.0035,
+                            slip: float = 0.0010, vol_target: float = 0.15,
+                            vol_win: int = 30, allow_short: bool = False):
+    """E17-v2 candidate (NOT registered -- see BOTTLENECK_DIAGNOSIS_
+    2026-07-25.md and E17-v2_HYPOTHESIS_DRAFT.md). Identical signal to
+    run_backtest (trend_state, unchanged) -- only the SIZING changes,
+    exactly mirroring crypto_trend.py's run_e4_voltarget: exposure
+    w_t = min(1, vol_target/sigma_t) instead of always-100%-when-in-a-
+    position. sigma_t is a trailing realized-vol estimate using only
+    returns through bar t (no lookahead, same construction as E4-v2).
+    This is the same fix that turned E4 (PF 2.86, ruin gate FAIL) into
+    E4-v2 (PASS 7/7) -- applied here because E17's own numbers (PF 7.6,
+    ruin gate FAIL) are the closest match to E4's original failure
+    shape of anything else in this repo's history."""
+    c = df["close"].values
+    n = len(df)
+    state = sig["trend_state"].values
+    r = np.zeros(n)
+    r[1:] = c[1:] / c[:-1] - 1.0
+    vol = pd.Series(r, index=df.index).rolling(vol_win).std() * np.sqrt(365)
+    w_tgt = np.minimum(1.0, vol_target / vol.replace(0, np.nan)).fillna(0.0).values
+    dirn = np.where(state == 1, 1.0, np.where((state == -1) & allow_short, -1.0, 0.0))
+    target = dirn * w_tgt
+
+    eq = np.ones(n)
+    trades, entry_eq, pos_prev, in_pos = [], 1.0, 0.0, False
+    for t in range(n - 1):
+        w = target[t]
+        cost = abs(w - pos_prev) * (fee + slip)
+        ret = c[t + 1] / c[t] - 1.0
+        eq[t + 1] = eq[t] * (1.0 + w * ret - cost)
+        if not in_pos and w != 0:
+            in_pos, entry_eq = True, eq[t]
+        elif in_pos and w == 0:
+            trades.append({"exit_i": t, "ret": eq[t + 1] / entry_eq - 1.0})
+            in_pos = False
+        pos_prev = w
+    if in_pos:
+        trades.append({"exit_i": n - 1, "ret": eq[-1] / entry_eq - 1.0})
+    daily = pd.Series(eq, index=df.index).pct_change().dropna()
+    return pd.DataFrame(trades), daily, pd.Series(eq, index=df.index)
+
+
 def max_dd(eq: np.ndarray) -> float:
     peak = np.maximum.accumulate(eq)
     return float(((eq - peak) / peak).min())
