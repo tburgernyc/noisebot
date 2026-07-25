@@ -1,6 +1,6 @@
 # STATE — noise_bot
 
-Updated: 2026-07-25 (session: E16/E17 registered and evaluated, both falsified; audit caught 2 real bugs pre-record)
+Updated: 2026-07-25c (session: bottleneck diagnosis -> E17-v2 falsified [n gate, audit-confirmed] -> E19 built from scratch and PASSED 7/7, audit-confirmed but flagged as a mechanism/timing pass, not a real-world-risk pass)
 
 ## 2026-07-18 session
 
@@ -422,6 +422,117 @@ the commodity/FX track: don't manufacture a retune-in-disguise). The
 deployment path) is untouched by this session and still stands on its
 own track, unaffected by E16/E17. E4-v2/E6 shadow continues accruing to
 ~2026-10-14 untouched throughout.
+
+## 2026-07-25c session (bottleneck diagnosis; E17-v2 falsified on n only; E19 built and PASSED 7/7 -- flagged as mechanism-pass not risk-pass)
+
+- Tim instructed: step back, find the common bottleneck across every
+  failed hypothesis, and find creative, executable, "outside the box"
+  solutions, up to and including different prop firms or tickers.
+  Wrote BOTTLENECK_DIAGNOSIS_2026-07-25.md, reading all 18 prior
+  hypotheses fresh from HYPOTHESES.md (not from memory). Finding: the
+  bootstrap ruin gate is the dominant recurring killer (E4, E9, E11,
+  E16, E17 all named it explicitly; E12's own "pass" turned out to be a
+  gate-auditor-caught exposure-cap artifact masking the same problem).
+  Split failures into two populations: strong-edge-killed-by-tail-risk
+  (E4, E17 -- a sizing fix, proven once already, fixes this) vs.
+  weak-edge-where-sizing-can't-help (E9/E11/E16 -- already vol-targeted,
+  still failed on thin edge). Root cause stated plainly: this repo has
+  a mature hypothesis-testing pipeline and almost no risk-engineering
+  pipeline -- E4-v2 is a proof of concept nobody productized into a
+  repeatable second step. Four solutions ranked by confidence: (1)
+  apply E4-v2's fix to E17 [[[E17-v2]]], (2) build the delta-neutral
+  funding harvest E7 should have been [[[E19]]], (3) prop-firm structural
+  lever (FundedNext's EOD trailing/no-consistency-rule structure fits
+  E17-shaped signals better than tick-by-tick trailing firms -- research
+  only, not actioned), (4) Bitcoin spot-ETF-flow signal (genuinely fresh
+  mechanism, ~53bp/$100M same-day correlation per cited research -- no
+  data pipeline built, deliberately deferred past E17-v2/E19).
+- Tim instructed: run E17-v2 and move E19 forward, pursue all viable
+  strategies. Both registered in HYPOTHESES.md pre-test, both evaluated
+  ONCE each, both sent to independent adversarial audits (separate
+  general-purpose agents, repo's own .claude/agents/gate-auditor.md
+  methodology, no access to this session's reasoning) before any
+  verdict was written to the permanent record.
+- E17-v2 (E17's unchanged signal, vol-targeted exposure -- direct reuse
+  of E4-v2's proven construction): audit independently re-derived every
+  gate from scratch (manual PF/Sharpe/maxDD, 5-seed + 50k-path
+  bootstrap check, real-BTC-data lookahead perturbation test, entry/
+  exit-date cross-check proving all 47 trades are byte-identical in
+  timing to E17's own 47). Confirmed, no bugs. VERDICT: FAIL, kill
+  criterion (n=47<100 only; PF 5.16, both halves positive, plateau all
+  positive, bootstrap ruin 0.0% robust, Sharpe 1.50>0.96bh all PASS).
+  Exactly the outcome predicted in the pre-registration: sizing
+  mechanism confirmed working, frequency problem confirmed separate
+  and unsolved. Full verdict in HYPOTHESES.md.
+- E19 (delta-neutral BTC/ETH/SOL perp funding-rate harvest -- short
+  perp + long spot, hedged, long-funding-collection side only, hysteresis
+  entry/exit on trailing 3-day funding): built from scratch this
+  session. Fetched 226 Binance monthly funding archives (data/funding/,
+  matches E7's original data note exactly). New module
+  e19_funding_basis.py (run_e19_single, run_e19 -- equal-weight 3-asset
+  combination, deliberately NOT a book-level dot-product like E6/E7,
+  to avoid an undisclosed-leverage artifact); test_e19.py 8/8 on
+  synthetic data including a dedicated hedge-neutrality check. Registered
+  in HYPOTHESES.md (7 gates -- the standard set plus a stricter
+  attribution gate than E7's, plus correlation as a hard gate not just
+  reported). Evaluated ONCE (logs/phase2_e19_2026-07-25.log): n=140
+  (BTC48/ETH36/SOL56), PF=9.075, both halves positive, plateau clean
+  across all 3 threshold pairs, bootstrap P(maxDD>40%)=0.0%, attribution
+  and correlation (0.07/0.10 vs E4-v2/E6) both clear. **PASS 7/7 --
+  first hypothesis in this repo's history to clear every registered
+  gate cleanly on its first run.**
+  Audit independently confirmed no implementation bug changes any gate,
+  AND surfaced the load-bearing caveat that must travel with this
+  result everywhere it's cited: the perp leg is priced off the SAME
+  spot-close array as the spot leg (disclosed before the run), so the
+  combined price-leg P&L is exactly, algebraically 0.0 every day --
+  not small, zero. That makes the attribution gate a tautology, not a
+  measurement, and means the Sharpe-7.2/maxDD--2.8% numbers describe a
+  world with zero spot/perp basis risk, zero cross-venue slippage, zero
+  liquidation risk, zero counterparty risk -- precisely the channels
+  the hypothesis draft itself flagged as widening exactly during the
+  high-funding regimes this strategy targets. **This is a mechanism/
+  signal-timing pass, not a real-world-risk pass.** What IS validated:
+  funding-sign timing logic is real and lookahead-free, 140 episodes
+  are economically plausible (median hold 10 days, not flicker noise),
+  and the low correlation to the existing trend book is real, not an
+  artifact. What is NOT validated: hedge quality under real market
+  stress -- the actual question a capital decision needs answered.
+  Two minor non-gate-affecting audit findings recorded in HYPOTHESES.md:
+  a SOL price-vs-funding start-date documentation imprecision (~2.5%
+  relative inflation of the total-return multiple during a 92-day
+  window, zero effect on maxDD or any gate), and a correlation-
+  comparator data-provenance caveat shared with E17-v2 (rebuilt from
+  data/*_usd_1d.json, not the exact byte-identical files E4-v2/E6's own
+  original registrations used, which no longer exist in the repo).
+- Prop-firm and ETF-flow fronts from the diagnosis: NOT actioned this
+  session, deliberately -- the diagnosis doc itself sequenced them
+  after E17-v2/E19 were through the pipeline, and both are separate,
+  larger undertakings (a real deployment-structure decision; a new
+  data pipeline) rather than a follow-up to already-built code. Left
+  as explicit options for the next round, not silently dropped.
+- Tests at close: test_e17.py 9/9, test_e19.py 8/8 -- all green.
+- Both hypotheses' outcomes recorded in HYPOTHESES.md with full,
+  independently-audited verdict text (E17-v2: falsified/kill criterion;
+  E19: passed, with the mechanism-vs-risk distinction stated as the
+  headline, not a footnote).
+
+## Single next action (2026-07-25c)
+
+E19 is NOT ready for a shadow/capital decision despite the clean gate
+sweep -- the honest next step, stated in the hypothesis draft and
+confirmed necessary by the audit, is either (a) sourcing real Binance
+perp mark-price history to replace the spot-proxy simplification and
+registering a fresh evaluation against it (E19-v2 territory, same
+E4->E4-v2/E17->E17-v2 precedent: a new registration, not a silent edit
+to this one), or (b) a paper/shadow exposure that experiences actual
+spot/perp basis behavior directly. Secondary, lower-urgency options on
+the table from the diagnosis, neither started: a pre-registered wider
+liquid-alt universe for E17-v2 if n=47 is worth chasing further; the
+FundedNext-vs-generic-40%-bar deployment-structure re-expression for
+E17-v2/E4-v2; the Bitcoin spot-ETF-flow signal (needs a new data
+pipeline, fully unbuilt). E4-v2/E6 shadow continues accruing to
+~2026-10-14 untouched throughout this entire session.
 
 ---
 

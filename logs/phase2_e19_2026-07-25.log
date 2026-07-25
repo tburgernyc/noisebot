@@ -1,0 +1,38 @@
+funding BTC: 2020-01-01 -> 2026-06-30 (2373 days)
+funding ETH: 2020-01-01 -> 2026-06-30 (2373 days)
+funding SOL: 2020-09-13 -> 2026-06-30 (2117 days)
+price universe: 2014-09-17 -> 2026-07-25 (4330 rows, cols=['BTC', 'ETH', 'SOL'])
+
+== PLATEAU (net total return by entry/exit threshold pair) ==
+entry=6%/exit=2%: n=156 total_ret=+1.7577 final=1.840x
+entry=8%/exit=3%: n=140 total_ret=+1.7395 final=1.829x
+entry=12%/exit=5%: n= 41 total_ret=+1.7075 final=1.808x
+
+== PRIMARY (entry=8%/exit=3%, full gate battery) ==
+n=140  PF=9.075  WR=39.3%  total_ret=+1.7395
+half1=+1.3120  half2=+0.4275
+  BTC: n=48  final=1.785x  funding=+0.7338  price=+0.00e+00  costs=0.1536
+  ETH: n=36  final=2.148x  funding=+0.8806  price=+0.00e+00  costs=0.1152
+  SOL: n=56  final=1.482x  funding=+0.5731  price=+0.00e+00  costs=0.1792
+
+metric window: 2020-01-01 -> 2026-07-25 (2398 days)
+final=1.8288x  maxDD(metric window)=-2.8%
+Sharpe (metric window, descriptive -- not gated for a market-neutral book)=7.217
+Bootstrap (10k paths, metric window): P(maxDD>40%) = 0.0%
+
+attribution total (sum of per-asset attribution / n_assets): {'funding': np.float64(0.7291601399999961), 'price': np.float64(0.0), 'costs': 0.1493333333333333}
+
+== Correlation gate (vs E4-v2 and E6, reconstructed from the same data) ==
+corr(E19, E4-v2) = 0.0698  (n=2398 overlapping days, metric window)
+corr(E19, E6)    = 0.1021  (n=2398 overlapping days, metric window)
+
+== Gate summary ==
+n>=100: 140 -> PASS
+PF>1.3: 9.075 -> PASS
+both-halves: half1=+1.3120 half2=+0.4275 -> PASS
+plateau all>0: {'6%/2%': 1.7577, '8%/3%': 1.7395, '12%/5%': 1.7075} -> PASS
+bootstrap P(maxDD>40%)<10%: 0.0% -> PASS
+attribution |price|<20%|funding|: price=+0.00e+00 funding=+0.7292 -> PASS
+correlation<=0.5 (both E4-v2 and E6): 0.070/0.102 -> PASS
+
+E19 VERDICT: PASS (7/7 gates)

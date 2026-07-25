@@ -1351,3 +1351,309 @@ Window ledger: BTC daily now has 5 prior evaluations (E4/E4-v2/E4-v3/
 E6/E17) — E17 is a price-structure-breakout mechanism, distinct in kind
 from the trend-family signal the other four share, logged honestly per
 E16's same reused-price-data caveat.
+
+---
+
+## E17-v2 — REGISTERED 2026-07-25 (pre-test): E17 signal at vol-targeted sizing
+
+Rationale: E17 (Livermore pivot-structure breakout) passed 4/6 gates
+decisively — PF 7.618, both halves positive, plateau strongly positive
+across all three pivot windows, Sharpe 1.410 vs. buy-hold 0.962 — and
+failed only on bootstrap ruin risk (74.1%, gate <10%) and trade count
+(n=47, gate ≥100). This is the same shape as E4's original failure (PF
+2.86, ruin gate FAIL, fixed by E4-v2's vol-targeting without touching
+the signal). Registered fix is SIZING, not signal: `compute_signals()`
+is byte-for-byte unchanged from E17; only exposure is vol-targeted,
+`run_backtest_voltarget()` in `e17_pivot_structure.py`, mirroring
+`crypto_trend.run_e4_voltarget` exactly (w_t = min(1, vol_target/
+sigma_t), sigma_t = 30-day realized vol annualized, no lookahead).
+Machinery-verified pre-run on a dedicated high-volatility (~67%
+annualized, BTC-like) synthetic fixture: full-size maxDD −61.4% vs.
+vol-targeted −18.9%, similar final return (test_e17.py, 9/9 pass).
+
+**Stated in advance, per register-hypothesis discipline**: vol-targeting
+cannot increase trade count. If every other gate clears but n stays at
+47, this registration is STILL falsified on the n≥100 gate — that
+outcome should be read as "the sizing mechanism is confirmed working,
+the frequency problem is separate and unsolved," not quietly waived.
+
+Rules (ALL fixed before any run):
+- Universe/timeframe/signal: BTC-USD daily, pivot_left=pivot_right=10,
+  neutral_lookback=5 — unchanged from E17.
+- Sizing: w_t = min(1, vol_target/sigma_t) applied to trend_state's
+  direction; sigma_t = 30-day realized vol of daily returns, annualized
+  (√365), no lookahead (matches E4-v2 construction exactly).
+- Costs: 0.35% fee/side + 10bps slip (unchanged).
+- Long/flat by default (allow_short=False) — unchanged from E17.
+- Registered plateau parameter: vol_target — 0.10 / 0.15 / 0.20 — all
+  three must be net positive. (Pivot window 10/10 already cleared its
+  own plateau under E17; not re-swept here. vol_win=30 is E4-v2's
+  shipped default, fixed.)
+- Gates: IDENTICAL bar to E17 — n≥100; PF>1.3; both halves net-positive;
+  plateau (all three vol_target cells) net-positive; bootstrap (10k
+  paths) P(maxDD>40%)<10%; Sharpe ≥ BTC buy-hold Sharpe; correlation vs.
+  E4-v2/E6 reported and interpreted, not gated.
+- Kill criterion: any gate fails → E17-v2 falsified on this window. No
+  retune. A likely honest outcome (stated in advance): ruin gate passes,
+  n gate still fails — record that distinction explicitly rather than
+  collapsing it into an undifferentiated FAIL.
+
+Window ledger: BTC daily evaluation #6 (E4/E4-v2/E4-v3/E6/E17/E17-v2) —
+a sizing-only variant of an already-registered signal, same treatment
+E4-v2 got relative to E4.
+
+### 2026-07-25 — E17-v2 evaluation (single registered run; log: `logs/phase2_e17v2_2026-07-25.log`)
+
+Independently adversarially audited (separate agent, no access to this
+run's reasoning): every gate re-derived from scratch — manual PF/
+Sharpe/maxDD recomputation, a 5-seed + 50k-path bootstrap robustness
+check (not just the registered seed=7), a real-BTC-data lookahead
+perturbation test on `run_backtest_voltarget` specifically (single-bar
+spikes at 4 live-position bars confirm bar t's weight only ever touches
+the t→t+1 return), and an entry/exit-date cross-check proving all 47
+trades are byte-for-byte the same signal-timing as E17's own original
+47 (vol-targeting changed position SIZE only, never entry/exit logic).
+No discrepancy found that changes any gate outcome. `test_e17.py` 9/9,
+`phase2_e17v2.py` reproducible byte-for-byte.
+
+**E17-v2 VERDICT: FAIL — kill criterion (1 of 6 gates fails: n; 5
+pass).** n=47 (gate ≥100, **FAIL** — structurally identical to E17's
+47, confirmed via independent entry/exit-bar reconstruction; vol-
+targeting cannot and did not change signal timing). Passing: PF 5.162
+(gate >1.3, **PASS**, down from E17's 7.618 as de-risking trims the
+largest trades, exactly as predicted), half1 +1.777/half2 +0.380
+(**PASS**), plateau vol_target{0.10,0.15,0.20} +1.401/+2.157/+2.941
+(all **PASS**), bootstrap (10k paths) P(maxDD>40%) 0.0% (gate <10%,
+**PASS** — confirmed robust across 5 seeds and 50k paths, worst single
+path only −36.4%), Sharpe 1.504 vs. buy-hold 0.962 (**PASS**, improved
+from E17's 1.410). Reported, not gated: correlation vs. E4-v2 0.805,
+vs. E6 0.640 (up from E17's 0.719/0.587) — mechanically explained by
+the audit, not a bug: E17-v2 and E4-v2 now share the identical
+30-day-vol/0.15-target sizing formula against the same BTC series,
+producing exact 1.0000 exposure-size correlation whenever both are
+simultaneously active, versus E17's binary 100%-exposure shape mismatch
+against E4-v2's already-vol-scaled book. (Minor disclosed caveat,
+inherited unchanged from E17's own original correlation reconstruction,
+not new to this run: the comparator rebuilds E4-v2/E6 from
+`data/*_usd_1d.json`, not the exact byte-identical file used in E4-v2/
+E6's own original registrations, which no longer exists in the repo —
+parameters match verbatim, only the price-data vintage may differ
+slightly; unlikely to matter given the size of the shift, but disclosed
+rather than assumed identical.)
+
+Read: exactly the outcome predicted in advance — the sizing fix is
+confirmed working (ruin gate cleared decisively and robustly, Sharpe
+improved, PF stayed strong well above the bar), and the frequency
+problem is confirmed separate and unsolved (n=47 is a property of the
+10/10 pivot signal's own firing rate on daily BTC, invariant to sizing).
+E17-v2 falsified on this window per the pre-registered kill criterion.
+No retune, no re-run. A wider, pre-registered liquid-alt universe is
+the legitimate next lever if trade count is to be addressed — a fresh
+registration, not an edit to this one (see
+`BOTTLENECK_DIAGNOSIS_2026-07-25.md`, "What 'just trade more tickers'
+does and doesn't fix").
+
+---
+
+## E19 — REGISTERED 2026-07-25 (pre-test): delta-neutral perp funding-rate harvest (BTC/ETH/SOL, spot+perp hedged)
+
+Rationale: E7 ("Perp funding-rate carry") was a naked directional bet on
+the SIGN of funding — short the perp when funding ran hot, long when
+negative, no offsetting spot leg — and failed decisively because the
+unhedged directional position lost more on price than it collected in
+funding ("funding leg +0.333 real but price leg −1.033 — carry is
+priced"). That is not what "cash-and-carry" / "delta-neutral funding
+harvest" means in practice: the standard professional construction
+pairs the perp short with an equal-notional spot long, cancelling price
+exposure so only the funding spread remains as P&L. E19 is that
+construction — a structurally different risk profile, not a retune of
+E7's thresholds. Perpetual funding is a structural payment from the
+crowded (persistently leveraged) side to whoever takes the other side —
+compensation for warehousing leverage demand, not a price forecast, the
+same mechanism E7 correctly identified; the fix is entirely in position
+construction. Research pulled 2026-07-25 found delta-neutral funding
+strategies positive in every month of 2025 (documented max monthly
+drawdown 0.80%) with professional implementations capturing ~19%
+annualized in 2025, but funding has compressed materially into 2026
+(high single digits by Q2 2026, per the same sources) — the honest
+forward expectation registered here is modest (single-digit to low-
+double-digit annualized), not the 2024-era headline numbers, and the
+plateau/gate design below is calibrated to that, not to 2024 conditions.
+
+**Long-funding-collection side only, stated in advance**: when trailing
+funding is favorable, hold SHORT 1 unit perp + LONG 1 unit spot (delta
+≈ 0). The mirror (long perp + short spot to collect negative funding) is
+deliberately NOT registered — spot-shorting crypto requires a borrow
+that isn't uniformly available/cheap at retail size, unlike E7's naked-
+short design which could costlessly take either side. This is a real
+executability constraint, not an oversight.
+
+**Known modeling simplification, disclosed before any run**: the perp
+leg is marked using the SAME spot-close series as the spot leg (no
+separate perp mark-price history sourced). Spot and perp marks are
+usually close but the basis WIDENS specifically during the high-funding
+regimes this strategy targets — this simplification could bias hedge
+quality in either direction exactly when it matters most, and is
+reported as a limitation on any pass, not silently assumed away. A
+mechanical consequence, verified in `test_e19.py`
+(`test_hedge_neutrality_despite_large_price_move`): because both legs
+are always opened/closed together at equal size against the identical
+price series, the combined price-leg P&L is identically zero by
+construction, for any price path — so the attribution gate below is
+expected to pass trivially, and a near-miss or fail would itself
+indicate an implementation bug, not evidence about real-world hedge
+quality (which this proxy cannot see).
+
+Rules (ALL fixed before any run):
+- Universe: BTC, ETH, SOL — USDT-margined perps + equal-notional spot,
+  independently per asset (E6/E7 convention: per-asset episodes),
+  combined into one portfolio curve by equal-weight averaging the
+  per-asset daily return series (not a book-level dot-product like E6/
+  E7 — E19 has no book-level vol target, so summing raw per-asset
+  returns would let 3 simultaneously-hedged assets imply undisclosed 3x
+  gross exposure; averaging keeps the book ≤1x with no artificial cap,
+  avoiding the kind of cap the gate-audit flagged as an artifact source
+  in E12 — `run_e19()` in `e19_funding_basis.py`).
+- Entry/exit: hysteresis band on trailing 3-day mean annualized funding
+  — enter when > entry threshold, exit when < exit threshold (exit set
+  lower than entry). LOOKBACK_D=3 and per-asset independence fixed, not
+  swept.
+- Sizing: fixed 1 unit per asset while hedged — edge measurement only
+  (E4 pre-v2 convention). A vol-targeted/capital-efficient sizing
+  variant is explicitly NOT part of this registration (E4→E4-v2
+  precedent would apply to a future E19-v2, not here).
+- Costs: entry/exit on BOTH legs — spot 10bps/side (E4/E4-v2
+  convention), perp 6bps/side (E8-R Binance-perp convention), ~32bps
+  round trip per hedge cycle — plus actual historical funding accrual
+  (8h prints, Binance monthly archives, same source E7 established).
+- Registered plateau parameter: entry/exit threshold pair — (6%/2%),
+  (8%/3%), (12%/5%) — all three must be net positive. All other
+  parameters fixed.
+- Windowing: engine runs over each asset's full price history (funding-
+  less pre-2020 bars come back as legitimately flat, not trimmed inside
+  `run_e19`/`run_e19_single`); gates/Sharpe/bootstrap computed only over
+  the funding-available window, 2020-01-01 onward (BTC/ETH) — same
+  METRIC_START convention `phase2_e7.py` uses, applied in `phase2_e19.py`.
+
+Gates (standard set + a STRICTER attribution gate than E7's): n≥100
+hedge episodes (BTC+ETH+SOL combined, per-asset independent); PF>1.3;
+both sample halves net-positive; plateau (all three threshold-pair
+cells) net-positive; bootstrap (10k paths) P(maxDD>40%)<10% — predicted
+to pass easily if the hedge works as designed, since a genuinely
+delta-neutral book should never approach 40% drawdown from price risk
+alone; attribution gate (stricter than E7's "funding>0 AND
+funding>|price|"): |price-leg P&L| < 20% of |funding-leg P&L| — this
+is the gate that actually tests hedge quality, not just whether funding
+won on net (see disclosed simplification above re: expected to pass
+trivially here); **correlation gate vs. E4-v2/E6 ≤ 0.5 (hard gate, not
+merely reported/interpreted — unlike E17-v2's convention)** — low
+correlation is expected and part of the investment case (a genuinely
+delta-neutral book should show close to zero correlation with a
+directional trend book — same logic as E16's correlation prediction,
+which held: 0.02–0.07 measured), but it is registered here as a pass/
+fail bar, per `E19_HYPOTHESIS_DRAFT.md`'s original wording.
+
+Kill criterion: any gate fails → E19 falsified on this window, recorded,
+no retune, no threshold search, no switching to sourcing real perp
+marks after seeing unfavorable spot-proxy results (that would be a
+fresh registration citing this one's result, not a silent edit).
+
+Window ledger: Binance funding history (BTC/ETH 2020-01-01→2026-06-30,
+SOL 2020-09-13→2026-06-30, confirmed present, 226 monthly archives) was
+already burned for the DIRECTIONAL E7 hypothesis (evaluation #1
+consumed) — a delta-neutral construction is a structurally different
+mechanism (hedge quality and funding-sign timing, not price direction),
+logged honestly as reused data, matching the disclosure convention used
+for BTC/ETH price data reuse across the E4-family and E16/E17. Spot
+price data (same `data/*_usd_1d.json` as E16/E17/E17-v2) covers the same
+window.
+
+Files: `e19_funding_basis.py` (`run_e19_single` — one asset; `run_e19` —
+BTC/ETH/SOL wrapper), reusing `e7_carry.load_funding_daily` unchanged.
+`test_e19.py` — 8/8 PASS on synthetic data (hysteresis transitions,
+hedge-neutrality under a large synthetic price move, cost/funding
+magnitude checks, no-lookahead, multi-asset combination arithmetic).
+
+### 2026-07-25 — E19 evaluation (single registered run; log: `logs/phase2_e19_2026-07-25.log`)
+
+Independently adversarially audited (separate agent, no access to this
+run's reasoning) — re-derived every gate from scratch rather than
+trusting the log: manual PF/win-loss recomputation, an independent
+from-scratch replay of the full P&L loop, a second bootstrap
+implementation (own RNG) plus a 10-day block-bootstrap robustness
+variant, a trade-duration-distribution check (median 10 days, only
+1/140 a 1-day flicker — ruling out n-laundering), and a forensic file-
+mtime check proving the simplification disclosure and gate spec were
+written and frozen on disk ~90 seconds *before* the run executed (not
+a post-hoc excuse). `test_e19.py` 8/8, `phase2_e19.py` reproducible
+byte-for-byte. No bug found that changes any gate outcome.
+
+**E19 VERDICT: PASS — 7/7 gates, independently re-audited.** n=140
+(BTC 48 / ETH 36 / SOL 56, gate ≥100, **PASS**), PF 9.075 (**PASS**),
+half1 +1.312/half2 +0.428 (**PASS**), plateau entry/exit{6%/2%, 8%/3%,
+12%/5%} +1.758/+1.740/+1.708 (all **PASS**), bootstrap (10k paths)
+P(maxDD>40%) 0.0% (**PASS**, worst of 10k paths only −0.85%, and 0.0%
+again under a 10-day block-bootstrap variant), attribution |price|
+0.0 vs. funding +0.729 (**PASS**), correlation 0.070 vs. E4-v2 / 0.102
+vs. E6, both ≤0.5 (**PASS**).
+
+**This is a mechanism/signal-timing pass, not a real-world-risk pass,
+and the two must not be conflated when deciding what this result
+means.** The audit's central finding: the perp leg is marked off the
+*same* spot-close array as the spot leg — not approximately equal,
+literally the same array object in the code — so the combined price-
+leg P&L is exactly 0.0 on every single day, for all three assets,
+individually and combined (confirmed algebraically and by replaying
+all 4,330 BTC bars: zero nonzero-price-P&L days). That makes gate #6
+(the attribution gate) a **tautology, not a measurement** — it could
+not have failed given this construction, regardless of how the hedge
+would actually perform. It also means the maxDD (−2.8%) and Sharpe
+(7.2, sustained over 6.5 years) describe a world with zero spot/perp
+basis risk, zero cross-venue execution slippage, zero perp liquidation
+risk, and zero exchange/counterparty risk — precisely the channels
+`E19_HYPOTHESIS_DRAFT.md` itself flagged in advance as widening
+specifically during the high-funding regimes this strategy targets,
+i.e. exactly where the real risk is expected to concentrate. A Sharpe
+of 7 held for 6.5 years is not a plausible real-world number for any
+two-venue hedged strategy; it is the expected signature of a backtest
+that has structurally removed its own primary risk channel by
+disclosed construction, not evidence the strategy is actually that
+safe. What this run DOES validate: the funding-sign timing logic is
+real and causally clean (no lookahead — funding print settlement times
+independently verified against Binance's 00:00/08:00/16:00 UTC schedule
+predate the price-bar close they're used against), the 140 episodes
+are economically plausible hold periods (median 10 days) rather than
+flicker noise, and the low correlation to the existing trend book
+(0.07–0.10) is real and matches the delta-neutral investment case, not
+an artifact of the simplification. What it does NOT validate: hedge
+quality under real market stress, which is the actual question a
+capital-allocation decision needs answered.
+
+Two smaller findings from the audit, neither gate-affecting: (1) SOL's
+*price* history starts 2020-04-10 (not the funding-history start of
+2020-09-13 the code comment cites) — for that ~92-day gap, the equal-
+weight portfolio average divides by 2 assets instead of 3, inflating
+the combined total-return multiple by ~2.5% relative (1.8288x vs. an
+always-÷3 alternative of ~1.7847x) with zero effect on maxDD or any
+trade-level gate — a documentation-precision issue in
+`e19_funding_basis.py`'s comment, not a math bug, left uncorrected
+since it doesn't change the verdict. (2) the E4-v2/E6 correlation
+comparators are rebuilt from `data/*_usd_1d.json` rather than the
+byte-identical files E4-v2/E6's own original registrations used (now
+missing from the repo) — same disclosed caveat as E17-v2's correlation
+figure above, immaterial at this margin (0.07/0.10 vs. a 0.5 bar) but
+not assumed identical.
+
+Kill criterion did not trigger — no gate failed. Per the pre-registered
+kill criterion's own terms, that means no retune and no re-run apply
+(there is nothing to retune); it does NOT mean this is ready to size
+capital against. Before this supports a shadow/live deployment
+decision, the honest next step — flagged in advance in
+`E19_HYPOTHESIS_DRAFT.md` and confirmed necessary by this audit — is
+either (a) sourcing actual Binance perp mark-price history to replace
+the spot proxy and re-registering a fresh evaluation against it (E19-v2
+territory, same E4→E4-v2/E17→E17-v2 precedent of not silently editing
+a closed registration), or (b) a paper/shadow exposure that experiences
+real basis behavior directly rather than through this backtest's proxy.
+Not done here — recorded as the explicit next step, not implied to be
+optional polish.
