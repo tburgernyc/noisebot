@@ -1,0 +1,26 @@
+BTC: 4330 bars 2014-09-17->2026-07-25
+
+== PLATEAU (net total return by pivot window, long/flat) ==
+pivot_window= 7: n= 63 total_ret=+9.5460 final=307.992x
+pivot_window=10: n= 47 total_ret=+9.7892 final=329.638x
+pivot_window=15: n= 39 total_ret=+9.2523 final=233.496x
+
+== PRIMARY (pivot_window=10, full gate battery, long/flat) ==
+n=47  PF=7.618  WR=53.2%  total_ret=+9.7892
+half1=+8.2667  half2=+1.5225
+final=329.6380x  maxDD=-38.6%
+Strategy Sharpe=1.410  Buy-hold Sharpe=0.962
+Bootstrap (10k paths): P(maxDD>40%) = 74.1%
+
+== Correlation gate (vs E4-v2 and E6, reconstructed from the same data) ==
+corr(E17, E4-v2) = 0.7188  (n=4329 overlapping days)
+corr(E17, E6)    = 0.5872  (n=4329 overlapping days)
+
+== Gate summary (long/flat) ==
+n>=100: 47 -> FAIL
+PF>1.3: 7.618 -> PASS
+both-halves: half1=+8.2667 half2=+1.5225 -> PASS
+plateau all>0: {7: np.float64(9.54597842502878), 10: np.float64(9.789243321794752), 15: np.float64(9.252319134641649)} -> PASS
+bootstrap P(maxDD>40%)<10%: 74.1% -> FAIL
+Sharpe>=buy-hold: 1.410 vs 0.962 -> PASS
+correlation (reported/interpreted, not a hard pass/fail here): 0.719 vs E4-v2, 0.587 vs E6 -- below the 0.8 rough guide, but still substantial

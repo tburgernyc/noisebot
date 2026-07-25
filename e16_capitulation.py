@@ -130,7 +130,27 @@ def run_backtest(df: pd.DataFrame, sig: pd.DataFrame, *, fee: float = 0.0035,
     definition of "reversion"), time_stop_bars elapsed (registered
     plateau parameter), or hard_stop_pct adverse move (fixed risk
     backstop -- not swept). Long/flat by default, matching the E4-v2/E6
-    spot convention. Cost (fee+slip) charged on each fill."""
+    spot convention. Cost (fee+slip) charged on each fill.
+
+    Bug found by adversarial audit (2026-07-25, pre-HYPOTHESES.md-commit):
+    an earlier version of this function marked equity to market using the
+    FULL c[t]->c[t+1] close-to-close return even on exit bars, then
+    applied cost on top -- meaning exits effectively filled at the NEXT
+    bar's CLOSE, not its OPEN as this docstring has always claimed
+    (entries were correct; only exits were wrong). Caught before any
+    evaluation was written to HYPOTHESES.md via a synthetic zero-cost
+    trace (entry@70, decision-bar close=70, next-bar open=500,
+    next-bar close=999 -> old code returned 13.271x, i.e. 999/70, an
+    exit at the FAR close; correct behaviour is ~6.14x, i.e. 500/70, an
+    exit at the NEAR open). Fixed below by explicitly splitting each
+    transition bar into an exposed segment (up to the fill point) and a
+    flat segment (from the fill point), rather than a single blended
+    close-to-close return. A same-bar exit-then-immediate-re-entry
+    (rare, but possible if a fresh capitulation signal fires on the same
+    bar an existing position times out or stops) chains correctly: the
+    exit segment leaves `base` valued as of o[t+1], which is exactly the
+    right starting point for the entry segment's o[t+1]->c[t+1] leg.
+    """
     o, c = df["open"].values, df["close"].values
     ma = sig["ma"].values
     bull = sig["bullish_capitulation"].values
@@ -143,38 +163,40 @@ def run_backtest(df: pd.DataFrame, sig: pd.DataFrame, *, fee: float = 0.0035,
     trades = []
 
     for t in range(n - 1):
-        ret_bar = pos * (c[t + 1] / c[t] - 1.0) if pos != 0 else 0.0
-        eq[t + 1] = eq[t] * (1.0 + ret_bar)
-        if pos != 0:
-            bars_held += 1
+        base = eq[t]
 
         if pos != 0:
+            bars_held += 1
             unrealized_pct = (c[t] / entry_px - 1.0) * pos * 100.0
             target_hit = (pos == 1 and c[t] >= ma[t]) or (pos == -1 and c[t] <= ma[t])
             time_hit = bars_held >= time_stop_bars
             stop_hit = unrealized_pct <= -abs(hard_stop_pct)
             if target_hit or time_hit or stop_hit:
-                eq[t + 1] *= (1.0 - cost)
+                # exposed c[t] -> o[t+1] (the actual fill point), then flat
+                base = base * (1.0 + pos * (o[t + 1] / c[t] - 1.0)) * (1.0 - cost)
                 trades.append({
                     "entry_i": entry_i, "exit_i": t + 1,
-                    "ret": eq[t + 1] / entry_eq - 1.0, "bars_held": bars_held,
+                    "ret": base / entry_eq - 1.0, "bars_held": bars_held,
                     "reason": "target" if target_hit else ("time" if time_hit else "stop"),
                 })
                 pos, bars_held = 0, 0
+            else:
+                base = base * (1.0 + pos * (c[t + 1] / c[t] - 1.0))
 
         if pos == 0:
-            if bull[t]:
-                pos = 1
-            elif allow_short and bear[t]:
-                pos = -1
-            if pos != 0:
-                eq[t + 1] *= (1.0 - cost)
-                entry_px, entry_eq, entry_i, bars_held = o[t + 1], eq[t + 1], t + 1, 0
+            new_pos = 1 if bull[t] else (-1 if (allow_short and bear[t]) else 0)
+            if new_pos != 0:
+                # flat c[t] -> o[t+1] (the fill point), then exposed o[t+1] -> c[t+1]
+                base = base * (1.0 - cost) * (1.0 + new_pos * (c[t + 1] / o[t + 1] - 1.0))
+                entry_px, entry_eq, entry_i, bars_held = o[t + 1], base, t + 1, 0
+                pos = new_pos
+
+        eq[t + 1] = base
 
     if pos != 0:
         trades.append({"entry_i": entry_i, "exit_i": n - 1,
                         "ret": eq[-1] / entry_eq - 1.0, "bars_held": bars_held,
-                        "reason": "eod_open"})
+                        "reason": "eod_close"})
 
     daily = pd.Series(eq, index=df.index).pct_change().dropna()
     return pd.DataFrame(trades), daily, pd.Series(eq, index=df.index)

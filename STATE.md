@@ -1,6 +1,6 @@
 # STATE — noise_bot
 
-Updated: 2026-07-25 (session: 4 public indicators audited via Claude session, E16/E17 registered, loader wired)
+Updated: 2026-07-25 (session: E16/E17 registered and evaluated, both falsified; audit caught 2 real bugs pre-record)
 
 ## 2026-07-18 session
 
@@ -347,14 +347,81 @@ caught and fixed)
   registered and loader-ready; running them is still a separate,
   explicit instruction per .claude/skills/register-hypothesis.
 
-## Single next action (2026-07-25)
+## 2026-07-25b session (E16/E17 evaluated, both falsified; audit caught and fixed 2 real bugs pre-record)
 
-Run E16 and E17 (real BTC/ETH daily data in hand, loader verified) --
-or register E15/E18 first if that's preferred; either way, that decision
-and the actual run are Tim's explicit next step, not automatic from
-registration. Separately, the 2026-07-24b blocker above (PB4
-reconciliation, gating the E12xE4-v2 deployment path) is untouched by
-this session and still stands on its own track.
+- Tim instructed: run E16 and E17. Both evaluated ONCE each, per their
+  registrations, using data/btc_usd_1d.json + data/eth_usd_1d.json
+  (already fetched) and a freshly-pulled data/sol_usd_1d.json (needed
+  for E6 reconstruction, the correlation gate's comparison point; not
+  committed, gitignored per repo convention).
+- BEFORE writing anything to HYPOTHESES.md, ran an adversarial audit
+  (general-purpose agent instructed to apply the repo's own
+  .claude/agents/gate-auditor.md persona) that independently re-derived
+  every number via fresh reruns, not just re-reading logs. It confirmed
+  both FAIL verdicts and found two real, worth-fixing issues:
+  1. Neither phase2_e16.py nor phase2_e17.py had committed,
+     reproducible code for the required correlation-vs-E4-v2/E6 gate —
+     the numbers had been computed in an ad hoc, uncommitted script.
+     Fixed: correlation computation (reconstructing E4-v2 via
+     crypto_trend.run_e4_voltarget and E6 via portfolio_trend.run_e6 on
+     the same data) added directly into both phase2 scripts, matching
+     the phase2_e7.py/phase2_e8.py precedent the audit pointed to.
+  2. e16_capitulation.py's run_backtest() had a genuine fill-timing bug:
+     exits were marked to market using the full close-to-close return
+     through the exit bar, then had cost applied on top — meaning exits
+     effectively filled at the NEXT bar's close, not its open, despite
+     the function's own docstring claiming next-open fills for both
+     entries and exits. Entries were already correct. Found via a clean
+     synthetic zero-cost trace (see the fix's docstring in
+     e16_capitulation.py for the exact repro). Fixed by splitting each
+     transition bar into an exposed segment (up to the fill point) and
+     a flat segment; re-verified against test_e16.py (8/8 still pass)
+     BEFORE re-running the registered evaluation. The fix changed E16's
+     exact numbers (PF 0.709->0.662, etc.) but not the verdict — still
+     a decisive 5/6-gate fail either way.
+  3. Also flagged (not fixed, does not block anything): e18_regime_
+     switch.py's e16_position_series() adapter has a timing-convention
+     mismatch with how run_backtest() consumes its output — noted
+     in-file for whenever E18 is actually picked up. E18 remains
+     unregistered and unevaluated.
+- E16 VERDICT: FAIL, 5/6 gates (n=72<100, PF=0.662<1.3, both halves
+  negative, plateau all negative, bootstrap ruin 95.8%>>10%). Only the
+  correlation gate passed (0.023 / 0.067 vs E4-v2/E6) — confirms the
+  mechanism is genuinely uncorrelated with the trend book, as predicted,
+  it just isn't profitable on this data. Full verdict + Read in
+  HYPOTHESES.md.
+- E17 VERDICT: FAIL on kill criterion — n=47<100 and bootstrap ruin
+  74.1%>>10% both fail independently, despite PF=7.618, both halves
+  positive, all 3 plateau cells strongly positive, and Sharpe 1.41 vs
+  buy-hold 0.96 all passing. Structurally similar to E4's original
+  story (strong average performance, fails on ruin risk at full
+  sizing) — noted as an observation, NOT acted on; a vol-targeted
+  sizing variant would be its own new registration (E17-v2), not run
+  here. Correlation vs E4-v2/E6 (0.72/0.59) is also high enough that
+  such a variant may not add much diversification even if it passed.
+  Full verdict + Read in HYPOTHESES.md.
+- Both hypotheses' kill criteria applied: falsified, recorded, no
+  retune, no threshold search. Twelfth falsified family territory (this
+  repo has now falsified: always-on momentum, ORB, VWAP reversion,
+  last-hour flow, funding carry, fast crypto trend, SMC/ICT, calendar
+  rebalancing, threshold rebalancing, and now volume-climax mean
+  reversion (E16) and full-sizing pivot-structure breakout (E17) — exact
+  family count/naming not reconciled here with the parallel
+  commodity/FX track's own tally; do that reconciliation before citing
+  a specific number publicly).
+- Tests at close: test_e15.py 8/8, test_e16.py 8/8, test_e17.py 8/8,
+  test_e18.py 5/5 — all still passing after the fix.
+
+## Single next action (2026-07-25b)
+
+Nothing mechanically required on the E16/E17 track — both falsified and
+recorded; no live path forward on crypto mean-reversion or full-sizing
+pivot-structure without a fresh, distinct mechanism (same discipline as
+the commodity/FX track: don't manufacture a retune-in-disguise). The
+2026-07-24b blocker above (PB4 reconciliation, gating the E12xE4-v2
+deployment path) is untouched by this session and still stands on its
+own track, unaffected by E16/E17. E4-v2/E6 shadow continues accruing to
+~2026-10-14 untouched throughout.
 
 ---
 

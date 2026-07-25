@@ -1183,6 +1183,52 @@ bars (2017-11-09→2026-07-25), zero nulls, loader-verified. Code:
 synthetic data, including a spacing-guard regression test for the
 range=max failure mode).
 
+### 2026-07-25 — E16 evaluation (single registered run; log: logs/phase2_e16_2026-07-25.log)
+
+Machinery verified on synthetic data before the run (test_e16.py, 8/8
+incl. no-lookahead, engineered-crash triggering, spacing-guard
+regression). A real fill-timing bug was found and fixed BEFORE this
+result was recorded: `run_backtest()` marked equity to market using the
+full close-to-close return through EXIT bars, then applied cost on top
+— meaning exits effectively filled at the next bar's CLOSE, not its
+OPEN as the function's own docstring claimed (entries were already
+correct). Caught by an adversarial audit via a synthetic zero-cost
+trace, fixed by explicitly splitting each transition bar into an
+exposed segment (up to the fill point) and a flat segment, re-verified
+against test_e16.py (8/8 still pass) before this run.
+
+E16 VERDICT: **FAIL — 5/6 gates.** Capitulation Finder (RSI+MA-distance+
+volume-climax entry, reversion-to-MA/time-stop/hard-stop exit), BTC+ETH
+daily 2014-09→2026-07 / 2017-11→2026-07, time_stop_bars=10 primary:
+n=72 combined (BTC=39, ETH=33; gate ≥100, **FAIL**), PF 0.662 (gate
+>1.3, **FAIL**), combined chronological half1 −0.262 / half2 −0.855
+(both negative, **FAIL**), plateau time_stop{5,10,15} total_ret −0.438 /
+−1.118 / −1.494 (all negative, **FAIL**), bootstrap (10k paths, 50/50
+BTC/ETH blended daily) P(maxDD>40%) 95.8% (gate <10%, **FAIL**). Passing
+gate: correlation vs. E4-v2 0.023, vs. E6 0.067 (gate ≤0.5, PASS) —
+confirms the mechanism really is uncorrelated with the trend book, as
+predicted, but that alone can't save a PF well below 1.
+
+Read: the registered prior-against was correct — oversold/extended/
+volume-climax readings in this window did not reliably resolve into a
+reversal, particularly on ETH (half1 −0.752, half2 −0.651, both legs
+losing; final 0.164x = −83.6% on the ETH book alone) where BTC's own
+book fared comparatively better (final 1.785x, positive, driven by a
+few large wins early, but not enough to rescue the combined picture).
+The n=72 shortfall (vs. gate ≥100) compounds an already-clear sign
+failure — this is not primarily an underpowered-test problem the way
+E14 was; PF 0.662 and 95.8% ruin risk are decisive on their own. Kill
+criterion applies: E16 falsified. No retune, no threshold search, no
+swap to a different MA type/length. Mean-reversion-via-volume-climax now
+falsified alongside VWAP-stretch reversion (E2) — two mean-reversion
+mechanisms, two failures, for related but not identical reasons (E2:
+wrong sign outright; E16: wrong sign AND underpowered).
+
+Window ledger: BTC/ETH daily now has 5-6 prior evaluations depending on
+asset (BTC: E4/E4-v2/E4-v3/E6/E16 = 5; ETH: E6/E16 = 2) — E16 was the
+first mean-reversion mechanism run on this data, all others are the
+trend family.
+
 ---
 
 ## E17 — REGISTERED 2026-07-25 (pre-test): Livermore pivot-structure breakout (BTC)
@@ -1260,3 +1306,48 @@ production and brute-force-verification reaction-tracking
 implementations), `test_e17.py` (8/8 pass on synthetic data, including
 the pivot-availability-shift correctness check, the fast-vs-bruteforce
 equivalence check, and the spacing-guard regression test).
+
+### 2026-07-25 — E17 evaluation (single registered run; log: logs/phase2_e17_2026-07-25.log)
+
+Machinery verified on synthetic data before the run (test_e17.py, 8/8
+incl. pivot-availability-shift correctness and fast-vs-bruteforce
+reaction-tracking equivalence, 0 mismatches/2000 bars). An adversarial
+audit independently re-derived every reported number from a fresh run
+(not just re-read the log) and confirmed all figures below; it also
+flagged that the correlation gate initially had no committed,
+reproducible script — fixed by adding the correlation computation
+directly into phase2_e17.py (this run's log reflects that).
+
+E17 VERDICT: **FAIL — kill criterion (2 gates fail; 4 pass).** Livermore
+pivot-structure breakout (10/10 confirmation, failure-swing + stall-
+detector invalidation), BTC daily 2014-09→2026-07, pivot_window=10
+primary, long/flat: n=47 (gate ≥100, **FAIL**), bootstrap (10k paths)
+P(maxDD>40%) 74.1% (gate <10%, **FAIL**). Passing: PF 7.618 (gate >1.3,
+PASS), half1 +8.267 / half2 +1.523 (both positive, PASS), plateau
+pivot_window{7,10,15} total_ret +9.546 / +9.789 / +9.252 (all positive,
+PASS), Sharpe 1.410 vs. buy-hold 0.962 (PASS). Reported, not gated:
+correlation vs. E4-v2 0.719, vs. E6 0.587 — below the registered 0.8
+rough-guide for "redundant expression" but clearly substantial, not the
+low-correlation profile a genuinely distinct mechanism would show.
+
+Read: the signal itself looks real by every average-case measure this
+pipeline has — PF 7.6 and Sharpe 1.41 are among the strongest this repo
+has produced, comparable to E4's original 2.86 PF before its own ruin
+gate failed. That comparison is the point: this is E4's story again.
+Full-sizing carries near-buy-hold ruin risk (74.1% P(maxDD>40%) is close
+to E4's original 97.8%), and n=47 over 11+ years means the signal fires
+too rarely to clear the trade-count bar on its own, independent of the
+ruin question. The 0.72/0.59 correlation with the trend book also means
+that even if a sizing fix cleared the ruin gate the way E4-v2 did for
+E4, this would not obviously add diversification beyond what E4-v2/E6
+already provide — it may just be a slower-firing, more path-dependent
+way to express the same trend bet. Kill criterion applies as registered:
+E17 falsified on THIS registration (full sizing, no vol targeting). A
+vol-targeted sizing variant would be a new, separate registration
+(E17-v2, E4→E4-v2 precedent) — not run here, and not implied to be
+worth running given the correlation finding above.
+
+Window ledger: BTC daily now has 5 prior evaluations (E4/E4-v2/E4-v3/
+E6/E17) — E17 is a price-structure-breakout mechanism, distinct in kind
+from the trend-family signal the other four share, logged honestly per
+E16's same reused-price-data caveat.

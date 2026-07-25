@@ -86,7 +86,19 @@ def e16_position_series(df: pd.DataFrame, *, time_stop_bars: int = 10,
     capitulation trade), so E18 can gate it bar-by-bar against the
     regime classifier -- rather than reusing E16's own trade-list-based
     run_backtest, which assumes a trade runs uninterrupted to its own
-    exit. Entry/exit conditions are otherwise IDENTICAL to E16 standalone."""
+    exit. Entry/exit conditions are otherwise IDENTICAL to E16 standalone.
+
+    KNOWN TIMING MISMATCH, flagged 2026-07-25, NOT fixed (E18 is not
+    registered or evaluated -- this does not affect any committed
+    result): this array sets pos[t+1]=1 when a position is entered AT
+    bar t's open (matching E16's own discrete-trade fill semantics), but
+    run_backtest() below consumes it the same way E9/E17 consume their
+    position arrays -- pos[t] weights the c[t]->c[t+1] return, the
+    house-standard continuous-exposure convention. Those are two
+    different conventions: this adapter's pos[k]=1 means "exposed from
+    bar k's open," while the consumer wants "decided at bar k's close,
+    exposed for bar k->k+1." Reconcile before E18 is ever registered --
+    either reindex this array by one, or change what run_backtest reads."""
     sig = e16_compute_signals(df, **entry_kwargs)
     ma, bull = sig["ma"].values, sig["bullish_capitulation"].values
     c, o = df["close"].values, df["open"].values
