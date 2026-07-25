@@ -1,6 +1,6 @@
 # STATE — noise_bot
 
-Updated: 2026-07-24 (session: E9/E11/E12 term-structure batch — 2 falsified, 1 marginal pass audited)
+Updated: 2026-07-25 (session: 4 public indicators audited via Claude session, E16/E17 registered, loader wired)
 
 ## 2026-07-18 session
 
@@ -270,6 +270,91 @@ leg is E12 and is contaminated/marginal until PB4 is reconciled. Until
 then: no new discovery registrations (edge well is dry — manufacturing
 more would be padding/p-hacking); E4-v2/E6 shadow continues accruing to
 ~2026-10-14 untouched.
+
+---
+
+## 2026-07-25 session (4 public indicators audited via a separate Claude
+Code session; E16/E17 registered; loader wired; ID-collision near-miss
+caught and fixed)
+
+- SOURCE: not this session's own discovery sweep — Tim supplied 5 public
+  indicator scripts (Alpha-Scope, Capitulation Finder, Ichimoku TK Cross,
+  MTF Compass Pro, a Livermore-style pivot-structure indicator) to a
+  separate Claude Code session working from a stale (2026-07-21) clone,
+  for structural audit + translation into registerable hypotheses. This
+  note reconciles that session's output into canonical STATE/HYPOTHESES.
+- Audit found real, worth-recording bugs in the source indicators
+  BEFORE any of them were ported: (1) Alpha-Scope computes its trend
+  filter twice under two names and never actually uses its own
+  "momentum" percentile block — dead code relative to the signal; (2)
+  the pivot-structure indicator has a genuine repaint/lookahead bug (a
+  pivot at bar i is used before the right-side bars needed to confirm it
+  have elapsed) plus an O(n²) hot loop; (3) MTF Compass Pro's slope-
+  normalization formula divides a raw price diff by a percentage number
+  without unit conversion, making its "meaningful slope" filter almost
+  always true (99.6% of bars in a test). All three fixed in the ports,
+  not just noted.
+- ID-COLLISION NEAR-MISS (caught before any push, no damage done): that
+  session's stale clone predated this cycle's E9/E11/E12/E14
+  term-structure batch and the reserved-E10 note above. Its drafted
+  registrations (originally numbered E9-E12) would have collided with
+  real, already-evaluated entries and the deliberately-reserved E10 slot
+  if applied as-is. Caught on a fresh clone diff, confirmed the original
+  E1-E8-R corpus is untouched (byte-identical), and renumbered
+  E9->E15, E10->E16, E11->E17, E12->E18 (all files, imports, docstrings,
+  cross-references) before touching this repo. Tim confirmed proceeding
+  despite the "no new discovery registrations" note above (2026-07-24b)
+  — these came from a separately-sourced audit, not the commodity/FX
+  discovery sweep that note was scoped to.
+- REGISTERED (pre-test, not evaluated): **E16** (Capitulation Finder ->
+  volume-confirmed mean reversion, BTC+ETH daily) and **E17** (Livermore
+  pivot-structure breakout, BTC daily). Full rationale/rules/gates in
+  HYPOTHESES.md. **E15** (Alpha-Scope channel breakout) and **E18**
+  (regime-switch combining E16 range-mode / E17 trend-mode, gated by a
+  simplified MTF-Compass-derived classifier) are drafted
+  (E15_HYPOTHESIS_DRAFT.md / E18_HYPOTHESIS_DRAFT.md) but deliberately
+  NOT registered here — E15 carries a registered prior-against (cousin
+  of the falsified breakout/momentum families), E18 is explicitly
+  sequenced after E16/E17 have real standalone numbers (E4->E4-v2
+  precedent).
+- DATA LOADER GAP FOUND AND FIXED: crypto_trend.py's load_yahoo_daily
+  only ever fetched open/close (fine for E4's trailing-return signal,
+  insufficient for E16's volume filter or E17's high/low pivot
+  detection). New `load_yahoo_daily_ohlcv` added to e16_capitulation.py
+  and e17_pivot_structure.py (duplicated per this repo's existing
+  per-module loader convention). REAL DATA-QUALITY BUG caught while
+  building it: fetching Yahoo's chart API with `range=max` silently
+  returns ~monthly-spaced bars while still claiming `interval=1d` and
+  setting no error field (confirmed: a BTC-USD range=max pull came back
+  as 143 "daily" bars over 12 years). Fixed by fetching with explicit
+  `period1`/`period2` Unix-timestamp bounds instead (verified: 4330
+  true daily bars, every gap exactly 1 day). The loader now asserts
+  this itself (`_assert_daily_spacing`) with a permanent regression test
+  in test_e16.py/test_e17.py, so a future accidental range=max re-fetch
+  fails loudly instead of silently feeding monthly bars into RSI(14)/
+  SMA(50)/pivot(10) windows sized for daily data.
+- Data fetched and loader-verified (shape/dtype/spacing/OHLC ordering
+  ONLY — not run through compute_signals/run_backtest, which would be an
+  actual evaluation): data/btc_usd_1d.json (4330 bars, 2014-09-17 ->
+  2026-07-25), data/eth_usd_1d.json (3181 bars, 2017-11-09 ->
+  2026-07-25), both gitignored per repo convention, zero nulls.
+- Machinery tests: test_e15.py 8/8, test_e16.py 8/8 (incl. 2 new
+  spacing-guard tests), test_e17.py 8/8 (incl. pivot-availability-shift
+  correctness + fast-vs-bruteforce reaction-tracking equivalence, 0
+  mismatches/2000 synthetic bars), test_e18.py 5/5 — all synthetic data
+  only, all passing before this commit.
+- NOT done: no hypothesis has been evaluated on real data. E16/E17 are
+  registered and loader-ready; running them is still a separate,
+  explicit instruction per .claude/skills/register-hypothesis.
+
+## Single next action (2026-07-25)
+
+Run E16 and E17 (real BTC/ETH daily data in hand, loader verified) --
+or register E15/E18 first if that's preferred; either way, that decision
+and the actual run are Tim's explicit next step, not automatic from
+registration. Separately, the 2026-07-24b blocker above (PB4
+reconciliation, gating the E12xE4-v2 deployment path) is untouched by
+this session and still stands on its own track.
 
 ---
 

@@ -1111,3 +1111,152 @@ matter at retail) are both dead. No third variant, no band search, no hold
 search, ever.
 Window ledger: es_zn_1d.csv 2010-06→2026-07 second registered use consumed
 (disclosed at registration). No Databento spend.
+
+---
+
+## E16 — REGISTERED 2026-07-25 (pre-test): Capitulation Finder — volume-confirmed mean reversion (BTC + ETH)
+
+Provenance: public indicator "Capitulation Finder" (Tim-supplied script).
+Structural audit found no bugs or dead code (unlike the Alpha-Scope
+channel-breakout indicator audited the same session — drafted as a
+candidate "E15" but NOT registered here; see
+IDEAS_AUDIT_AND_SYNTHESIS.md/E15_HYPOTHESIS_DRAFT.md if that ID is ever
+actually registered) — this indicator's entry logic is internally
+coherent. Signal/marker only in the source; no exit was defined there,
+so the exit rule below is this registration's own design, not inherited
+from the indicator.
+
+Economic rationale: forced-liquidation exhaustion — leveraged-long
+liquidation cascades during a crypto selloff can push price through a
+volume-climax blow-off low that overshoots any reasonable fair value;
+once forced sellers are exhausted, price reverts toward its recent mean.
+Distinct from E2 (VWAP-stretch mean reversion, decisively falsified:
+PF 0.79, n=818) — E2's trigger was pure price/VWAP distance with no
+volume condition at all; this requires an actual climax event, not just
+a price stretch. Registered prior against: oversold readings do not
+reliably resolve into a reversal — Bitcoin stayed pinned at
+extreme-oversold through additional decline in the Nov 2018 crash. The
+hard stop below exists specifically because of this, not as an
+afterthought bolted onto a signal that "should" work.
+
+Rules (ALL fixed before any run):
+- Universe: BTC-USD AND ETH-USD, per-asset independent episodes (E6
+  convention) — registered together because true triple-AND capitulation
+  bars are rare by construction; a single asset risks starving n≥100.
+- Timeframe: daily. Capitulation/exhaustion is mechanistically a slower,
+  higher-timeframe phenomenon (multi-day panic, not an intrabar flicker).
+- Entry: RSI(14) ≤ 30 AND close < SMA(50)×0.95 AND volume ≥ 1.2× its
+  20-period average, all on the same bar → LONG next bar open. Long/flat
+  only — the mirrored bearish-capitulation trigger is computed but not
+  traded in this registration.
+- Exit — first of: (1) close reverts to the SMA(50) (target, the
+  mechanism's own definition of "reversion"); (2) time stop — registered
+  plateau, 5 / 10 / 15 bars; (3) fixed 8% adverse move (hard stop, risk
+  backstop, not swept).
+- Costs: 0.35% fee/side + 10bps slip (E4/E4-v2 daily convention).
+- Registered plateau parameter: time-stop bars (5 / 10 / 15) — all three
+  must be net positive. (RSI/pct-threshold/volume-multiplier are the
+  indicator's shipped defaults — FIXED, not swept.)
+- Gates: n ≥ 100 closed trades (BTC+ETH combined); PF > 1.3; both sample
+  halves net-positive; plateau (all three time-stop cells) net-positive;
+  bootstrap (10k paths) P(maxDD > 40%) < 10%; correlation gate:
+  daily-return correlation vs. E4-v2 and vs. E6 ≤ 0.5 — here a LOW
+  correlation is the hoped-for result (a mean-reversion entry should look
+  nothing like the trend book if it's real), unlike E7/E8-R where low
+  correlation couldn't save a failing PF.
+- Kill criterion: any gate fails → E16 falsified on this window. No
+  retune, no threshold search, no swap to a different MA type/length
+  after seeing results.
+
+Window ledger: BTC/ETH daily price history has 4-5 prior evaluations
+(E4, E4-v2, E4-v3, E6), all of the trend-family mechanism. A
+mean-reversion trigger run on the same raw prices is a different kind of
+test — logged honestly as "reused price data, fresh mechanism," not
+claimed as a fresh window outright.
+
+Data: `data/btc_usd_1d.json` and `data/eth_usd_1d.json` (Yahoo chart API,
+explicit period1/period2 bounds — NOT range=max, which was found during
+loader construction to silently return ~monthly-spaced bars while still
+claiming interval=1d). 4330 BTC bars (2014-09-17→2026-07-25), 3181 ETH
+bars (2017-11-09→2026-07-25), zero nulls, loader-verified. Code:
+`e16_capitulation.py` (pure logic + loader), `test_e16.py` (8/8 pass on
+synthetic data, including a spacing-guard regression test for the
+range=max failure mode).
+
+---
+
+## E17 — REGISTERED 2026-07-25 (pre-test): Livermore pivot-structure breakout (BTC)
+
+Provenance: public indicator "Pivot Levels & Candle Color (Dark Theme)"
+(Tim-supplied script) — the most sophisticated of four indicators
+audited this session. TWO structural bugs found and fixed in the port
+(`e17_pivot_structure.py`): (1) a repaint/lookahead bug — the source
+uses a pivot at bar i before the pivot_right_bars needed to confirm it
+have actually elapsed; fixed with an explicit forward-availability
+shift, verified by a dedicated test plus the standard no-lookahead
+perturbation test; (2) an O(n²) performance issue in the reaction-low/
+-high tracker, replaced with an O(1)-amortized accumulator, cross-checked
+against a literal brute-force port of the source's own algorithm (0
+mismatches across 2000 synthetic bars, not just asserted equivalent).
+
+Economic rationale: breakout above a confirmed swing high is treated as
+a genuine regime shift (stops and momentum-chasing flow extend it); the
+reaction-low invalidation is a failure-swing check specifically (did the
+breakout immediately fail), while a separate three-part stall detector
+catches a different, later failure mode (trend gone quiet well after the
+breakout, independent of any hard level being touched). Registered prior
+against: mechanically related to E1 (ORB breakout, falsified) and
+H3-EXT (SMC/ICT, falsified) — both price-structure breakout mechanisms;
+not obviously fresh, and the correlation gate below is how that gets
+checked rather than assumed away. Independent, directly relevant
+evidence on the failure-swing leg specifically: practitioner sources
+(not peer-reviewed, flagged as such) on the closely related Swing
+Failure Pattern cite ~74% win rate in consolidation vs. ~52% in strong
+trends for that pattern family — a citable claim that this style of
+setup is regime-dependent, and a reason E17's own numbers might look
+uneven across the sample rather than uniformly strong or weak. (That
+regime-dependence claim is also the rationale for a drafted, NOT
+registered, "E18" regime-switch combining this with E16 — see
+IDEAS_AUDIT_AND_SYNTHESIS.md/E18_HYPOTHESIS_DRAFT.md; per the E4→E4-v2
+precedent, E18 should not be evaluated before E16 and E17 both have real
+standalone numbers, so it is deliberately not registered alongside them
+here.)
+
+Rules (ALL fixed before any run):
+- Universe: BTC-USD, daily bars.
+- Pivot detection: look-left/look-right (10/10) confirmation + timeframe-
+  adaptive confirmation factor + significance filter, per the source's
+  own design (audited, not simplified).
+- Position tracks trend_state directly (E4-style: no separate stop/
+  target leg — the state machine's own invalidation IS the exit).
+  Long/flat by default; allow_short=True is a distinct, unregistered
+  perp/futures variant.
+- Costs: 0.35% fee/side + 10bps slip (E4/E4-v2 daily convention).
+- Registered plateau parameter: pivot window (left=right, jointly) —
+  7 / 10 / 15 bars — all three must be net positive. (neutral_lookback=5
+  is the indicator's shipped default — FIXED, not swept.)
+- Gates: n ≥ 100 trades; PF > 1.3; both sample halves net-positive;
+  plateau (all three pivot-window cells) net-positive; bootstrap
+  (10k paths) P(maxDD > 40%) < 10%; Sharpe ≥ BTC buy-hold Sharpe;
+  correlation gate vs. E4-v2 and E6 — reported and interpreted, not just
+  pass/fail: SOME correlation with the trend sleeves is economically
+  expected here (unlike E16), so a very high correlation (rough guide:
+  >0.8) should be read as "the same trend bet with extra steps," not
+  treated as a simple pass.
+- Kill criterion: any gate fails → E17 falsified on this window. No
+  retune, no threshold search, no re-run with a different
+  pivot-confirmation factor after seeing results.
+
+Window ledger: BTC daily — same reused-price-data situation as E16
+(4-5 prior evaluations, all trend-family). A price-structure breakout
+mechanism is a different kind of test, logged honestly, not claimed as a
+fresh window.
+
+Data: `data/btc_usd_1d.json` (same file and provenance as E16's — see
+that entry for the range=max loader finding). 4330 bars,
+2014-09-17→2026-07-25, zero nulls, loader-verified. Code:
+`e17_pivot_structure.py` (pure logic + loader, includes both the
+production and brute-force-verification reaction-tracking
+implementations), `test_e17.py` (8/8 pass on synthetic data, including
+the pivot-availability-shift correctness check, the fast-vs-bruteforce
+equivalence check, and the spacing-guard regression test).
