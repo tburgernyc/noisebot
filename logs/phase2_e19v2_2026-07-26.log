@@ -1,0 +1,46 @@
+funding BTC: 2020-01-01 -> 2026-06-30 (2373 days)
+funding ETH: 2020-01-01 -> 2026-06-30 (2373 days)
+funding SOL: 2020-09-13 -> 2026-06-30 (2117 days)
+perp mark BTC: 2020-01-01 -> 2026-06-30 (2364 days)
+perp mark ETH: 2020-01-01 -> 2026-06-30 (2370 days)
+perp mark SOL: 2020-09-13 -> 2026-06-30 (2109 days)
+price universe (spot): 2014-09-17 -> 2026-07-25 (4330 rows, cols=['BTC', 'ETH', 'SOL'])
+
+== PLATEAU (net total return by entry/exit threshold pair) ==
+entry=6%/exit=2%: n=156 total_ret=+1.6832 final=1.757x
+entry=8%/exit=3%: n=140 total_ret=+1.5872 final=1.699x
+entry=12%/exit=5%: n= 41 total_ret=+1.6084 final=1.717x
+
+== PRIMARY (entry=8%/exit=3%, full gate battery) ==
+n=140  PF=6.780  WR=39.3%  total_ret=+1.5872
+half1=+1.1532  half2=+0.4340
+  BTC: n=48  final=1.672x  funding=+0.7337  price=-0.0582  costs=0.1536
+  ETH: n=36  final=1.939x  funding=+0.8806  price=-0.0878  costs=0.1152
+  SOL: n=56  final=1.452x  funding=+0.5731  price=-0.0061  costs=0.1792
+
+metric window: 2020-01-01 -> 2026-07-25 (2398 days)
+final=1.6988x  maxDD(metric window)=-6.6%
+Sharpe (metric window, descriptive -- not gated for a market-neutral book)=1.483
+Bootstrap (10k paths, metric window): P(maxDD>40%) = 0.0%
+
+attribution total (sum of per-asset attribution / n_assets): {'funding': np.float64(0.729139749999996), 'price': np.float64(-0.05072943969067031), 'costs': 0.1493333333333333}
+
+== Correlation gate (vs E4-v2 and E6, reconstructed from the same data) ==
+corr(E19-v2, E4-v2) = -0.0355  (n=2398 overlapping days, metric window)
+corr(E19-v2, E6)    = -0.0828  (n=2398 overlapping days, metric window)
+
+== Gate summary ==
+n>=100: 140 -> PASS
+PF>1.3: 6.780 -> PASS
+both-halves: half1=+1.1532 half2=+0.4340 -> PASS
+plateau all>0: {'6%/2%': 1.6832, '8%/3%': 1.5872, '12%/5%': 1.6084} -> PASS
+bootstrap P(maxDD>40%)<10%: 0.0% -> PASS
+attribution |price|<20%|funding|: price=-0.0507 funding=+0.7291 ratio=7.0% -> PASS
+correlation<=0.5 (both E4-v2 and E6): -0.036/-0.083 -> PASS
+
+E19-v2 VERDICT: PASS (7/7 gates)
+
+== FTX-collapse window check (descriptive, not gated) ==
+  BTC: hedged through 2022-11-09 -- [{'entry': Timestamp('2022-11-08 00:00:00+0000', tz='UTC'), 'exit': Timestamp('2022-11-10 00:00:00+0000', tz='UTC'), 'ret': -0.00518554342271206}]
+  ETH: not hedged on 2022-11-09
+  SOL: hedged through 2022-11-09 -- [{'entry': Timestamp('2022-11-07 00:00:00+0000', tz='UTC'), 'exit': Timestamp('2022-11-09 00:00:00+0000', tz='UTC'), 'ret': 0.004655497666745998}]

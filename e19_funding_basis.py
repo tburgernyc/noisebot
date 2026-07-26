@@ -187,3 +187,176 @@ def run_e19(px: pd.DataFrame, fund: dict[str, pd.DataFrame], *,
     portfolio_daily = daily_df.mean(axis=1, skipna=True).dropna()
     portfolio_eq = (1.0 + portfolio_daily).cumprod()
     return combined_trades, portfolio_daily, portfolio_eq, per_asset, attribution_total
+
+
+# ---------------------------------------------------------------------------
+# E19-v2: same mechanism, real perp mark price instead of the spot proxy.
+# run_e19_single/run_e19 above are left byte-for-byte untouched -- E19's own
+# registered evaluation must stay exactly reproducible. Everything below is
+# additive, mirroring the E4->E4-v2 / E17->E17-v2 precedent: ONE modeling
+# input changes (what prices the perp leg), nothing else does.
+# ---------------------------------------------------------------------------
+
+_MARK_KLINE_COLS = ["open_time", "open", "high", "low", "close", "volume", "close_time",
+                     "quote_volume", "count", "taker_buy_volume", "taker_buy_quote_volume",
+                     "ignore"]
+
+
+def load_mark_price_daily(dirpath: str, sym: str) -> pd.Series:
+    """Binance USDS-M mark-price daily klines (monthly archives fetched
+    into data/perp_mark/, e.g. BTCUSDT-1d-2024-01.csv) -> daily close
+    series, UTC-normalized index.
+
+    Handles a real inconsistency found in Binance's own archives: monthly
+    files before ~2022-02 ship with NO header row (first line is already
+    data); files from 2022-02 on DO have a header row. Naively
+    concatenating them with a uniform `pd.read_csv` silently misaligns
+    columns across the merged frame (one file's first data row gets
+    treated as the header). Detected and normalized per file here, not
+    assumed uniform.
+    """
+    import glob
+    rows = []
+    for f in sorted(glob.glob(f"{dirpath}/{sym}-1d-*.csv")):
+        with open(f) as fh:
+            first_line = fh.readline().strip()
+        has_header = first_line.split(",")[0] == "open_time"
+        rows.append(pd.read_csv(f, header=0 if has_header else None, names=_MARK_KLINE_COLS))
+    if not rows:
+        raise FileNotFoundError(f"no mark-price CSVs for {sym} in {dirpath}")
+    d = pd.concat(rows, ignore_index=True)
+    ts = pd.to_datetime(d["open_time"], unit="ms", utc=True)
+    out = pd.Series(d["close"].astype(float).values, index=ts).sort_index()
+    return out[~out.index.duplicated(keep="first")]
+
+
+def run_e19_single_v2(px_spot: pd.Series, px_perp: pd.Series, fund: pd.DataFrame, *,
+                       entry: float = 0.08, exit_thr: float = 0.03):
+    """E19-v2, one asset: identical hysteresis/sizing/cost mechanism to
+    run_e19_single, except the perp leg is priced off a REAL perp
+    mark-price series (px_perp, from load_mark_price_daily) instead of
+    reusing the spot series. px_perp is reindexed onto px_spot's index;
+    a day where either leg lacks a valid price leaves the hold/flat
+    decision un-updated that day, rather than forcing an artificial
+    exit/re-entry and paying costs over what is very likely a
+    source-side data hole, not a real market closure.
+
+    Precision note on gap-day accounting (corrected after the E19-v2
+    audit found the original wording here overclaimed): on such a day
+    only the PRICE leg is zeroed -- `spot_ret`/`perp_ret` are 0.0 by the
+    `valid` mask below, so `px_pnl` is 0.0 -- while funding STILL
+    accrues against the frozen pre-gap weight if a position was already
+    held (`fund_pnl` is deliberately not gated on `valid`, since the
+    funding print itself is real and available on those days; the gap is
+    in the mark-price archive, not in the funding archive). Measured
+    impact over the registered window: 10 held-and-gapped instances
+    (3 BTC, 1 ETH, 6 SOL), totalling +0.0024 raw funding (~0.11% of
+    total) -- immaterial, but stated exactly rather than approximately.
+
+    A second, related consequence, also surfaced by the audit: because
+    the decision gate requires BOTH legs valid (unlike run_e19_single,
+    which only needs spot), a threshold crossing that lands exactly on a
+    mark-price gap day is acted on one day late. This happens once in
+    the registered window (BTC, 2021-07-01 gap -> entry shifts to
+    07-02/07-03), a data-availability effect, NOT a price-driven one:
+    price LEVELS never influence entry/exit here, only price PRESENCE.
+
+    Because spot_ret and perp_ret are now genuinely different series,
+    px_pnl is no longer identically zero -- this is the whole point: it
+    now measures real hedge slippage (basis risk) instead of being a
+    tautological zero by construction.
+    """
+    idx = px_spot.index
+    T = len(idx)
+    c_spot = px_spot.values.astype(float)
+    c_perp = px_perp.reindex(idx).values.astype(float)
+    valid = ~np.isnan(c_spot) & ~np.isnan(c_perp)
+
+    spot_ret = np.zeros(T)
+    perp_ret = np.zeros(T)
+    with np.errstate(invalid="ignore"):
+        spot_ret[1:] = np.where(valid[1:] & valid[:-1], c_spot[1:] / c_spot[:-1] - 1.0, 0.0)
+        perp_ret[1:] = np.where(valid[1:] & valid[:-1], c_perp[1:] / c_perp[:-1] - 1.0, 0.0)
+
+    f = fund.reindex(idx)
+    fmean = f["ann_mean"].rolling(LOOKBACK_D, min_periods=LOOKBACK_D).mean().values
+    fsum = f["day_sum"].fillna(0.0).values
+    have_f = ~np.isnan(fmean)
+
+    eq = np.ones(T)
+    held = False
+    w_spot_held, w_perp_held = 0.0, 0.0
+    trades = []
+    ep_ret, ep_open, entry_i = 0.0, False, None
+    cum_fund = cum_price = cum_cost = 0.0
+
+    for t in range(1, T - 1):
+        if have_f[t] and valid[t]:
+            if not held and fmean[t] > entry:
+                held = True
+            elif held and fmean[t] < exit_thr:
+                held = False
+        w_spot_new = 1.0 if held else 0.0
+        w_perp_new = -1.0 if held else 0.0
+
+        cost = (abs(w_spot_new - w_spot_held) * SPOT_COST
+                + abs(w_perp_new - w_perp_held) * PERP_COST)
+        w_spot_held, w_perp_held = w_spot_new, w_perp_new
+
+        px_pnl = w_spot_held * spot_ret[t + 1] + w_perp_held * perp_ret[t + 1]
+        fund_pnl = -(w_perp_held * fsum[t + 1])
+        cum_price += px_pnl
+        cum_fund += fund_pnl
+        cum_cost += cost
+        eq[t + 1] = eq[t] * (1.0 + px_pnl + fund_pnl - cost)
+
+        if w_spot_held != 0.0 and not ep_open:
+            ep_open, ep_ret, entry_i = True, 0.0, t + 1
+        if ep_open:
+            ep_ret += px_pnl + fund_pnl - cost
+        if ep_open and w_spot_held == 0.0:
+            trades.append({"entry": idx[entry_i], "exit": idx[t + 1], "ret": ep_ret})
+            ep_open, ep_ret = False, 0.0
+
+    if ep_open:
+        trades.append({"entry": idx[entry_i], "exit": idx[-1], "ret": ep_ret})
+
+    daily = pd.Series(eq, index=idx).pct_change().dropna()
+    attribution = {"funding": cum_fund, "price": cum_price, "costs": cum_cost}
+    cols = ["entry", "exit", "ret"]
+    trades_df = pd.DataFrame(trades, columns=cols) if trades else pd.DataFrame(columns=cols)
+    return trades_df, daily, pd.Series(eq, index=idx), attribution
+
+
+def run_e19_v2(px_spot: pd.DataFrame, px_perp: dict, fund: dict, *,
+               entry: float = 0.08, exit_thr: float = 0.03):
+    """E19-v2 multi-asset wrapper. Identical equal-weight-averaging
+    combination to run_e19 (see its docstring for the rationale) -- only
+    the per-asset engine differs (run_e19_single_v2, real perp marks,
+    instead of run_e19_single's spot proxy).
+    """
+    names = list(px_spot.columns)
+    per_asset = {}
+    all_trades = []
+    daily_frames = {}
+    attribution_total = {"funding": 0.0, "price": 0.0, "costs": 0.0}
+    for nm in names:
+        s = px_spot[nm].dropna()
+        trades, daily, eq, att = run_e19_single_v2(s, px_perp[nm], fund[nm],
+                                                    entry=entry, exit_thr=exit_thr)
+        per_asset[nm] = (trades, daily, eq, att)
+        if len(trades):
+            t2 = trades.copy()
+            t2.insert(0, "asset", nm)
+            all_trades.append(t2)
+        daily_frames[nm] = daily
+        for k in attribution_total:
+            attribution_total[k] += att[k] / len(names)
+
+    combined_cols = ["asset", "entry", "exit", "ret"]
+    combined_trades = (pd.concat(all_trades, ignore_index=True)
+                        if all_trades else pd.DataFrame(columns=combined_cols))
+    daily_df = pd.DataFrame(daily_frames)
+    portfolio_daily = daily_df.mean(axis=1, skipna=True).dropna()
+    portfolio_eq = (1.0 + portfolio_daily).cumprod()
+    return combined_trades, portfolio_daily, portfolio_eq, per_asset, attribution_total

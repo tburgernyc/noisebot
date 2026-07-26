@@ -1,6 +1,6 @@
 # STATE — noise_bot
 
-Updated: 2026-07-25c (session: bottleneck diagnosis -> E17-v2 falsified [n gate, audit-confirmed] -> E19 built from scratch and PASSED 7/7, audit-confirmed but flagged as a mechanism/timing pass, not a real-world-risk pass)
+Updated: 2026-07-26 (session: E19-v2 -- real Binance perp mark-price sourced, replacing E19's spot proxy; PASSED 7/7 with a now-REAL attribution gate that could have failed; audit-confirmed, two self-reported precision corrections)
 
 ## 2026-07-18 session
 
@@ -516,6 +516,92 @@ own track, unaffected by E16/E17. E4-v2/E6 shadow continues accruing to
   independently-audited verdict text (E17-v2: falsified/kill criterion;
   E19: passed, with the mechanism-vs-risk distinction stated as the
   headline, not a footnote).
+
+## 2026-07-26 session (E19-v2: real perp marks sourced; PASSED 7/7 with a genuinely falsifiable attribution gate)
+
+- Tim instructed: source real Binance perp mark-price history for E19,
+  then (after reviewing the basis analysis) "build it".
+- Fetched 226 monthly Binance USDS-M mark-price kline archives into
+  data/perp_mark/ (gitignored) -- coverage matches the funding data
+  exactly: BTC/ETH 2020-01-01->2026-06-30, SOL 2020-09-13->2026-06-30.
+- REAL DATA-FORMAT BUG FOUND AND FIXED BEFORE ANY NUMBER WAS COMPUTED:
+  Binance's own monthly kline archives before ~2022-02 ship with NO
+  header row; later ones DO. A naive uniform pd.read_csv across all 226
+  files silently misaligns columns (one file's first data row is read
+  as that file's header), corrupting the whole concatenated frame --
+  visible as nonsense column names and a NaT max index. load_mark_price_
+  daily() now detects and normalizes per file. Worth remembering for
+  any future registration reusing Binance kline archives.
+- Pre-registration basis analysis (exploratory, no gate computed):
+  average daily |basis| is small on BTC/ETH (0.10-0.18%) and IS larger
+  on hot-funding days than otherwise (BTC 0.131 vs 0.100; ETH 0.177 vs
+  0.101) -- the audit's predicted direction, confirmed. SOL carries a
+  16.65% one-day basis blowout on 2022-11-09 (FTX collapse), verified
+  against raw OHLC, not a parsing artifact.
+- E19-v2 registered pre-test in HYPOTHESES.md (gates IDENTICAL to E19's
+  bar; plateau NOT re-swept; only ONE input changed -- what prices the
+  perp leg). run_e19_single/run_e19 left byte-for-byte untouched;
+  run_e19_single_v2/run_e19_v2/load_mark_price_daily are additive.
+  test_e19.py 8/8 -> 13/13, including a perp-equals-spot regression
+  proving v2 reduces to v1 when there's no basis, and an independent-
+  replay check that real divergence lands in attribution correctly.
+- E19-v2 VERDICT: **PASS 7/7.** n=140, PF 6.780, both halves positive,
+  plateau all positive, bootstrap P(maxDD>40%) 0.0%, attribution 7.0%
+  (gate <20%), correlation -0.036/-0.083 (gate <=0.5).
+  **The key difference from v1: this attribution gate could actually
+  have failed and didn't.** v1's price leg was identically 0.0 by
+  construction (tautology); v2's is a real -0.0507 cumulative hedge-
+  slippage cost measured against real mark prices. Sharpe fell 7.2 ->
+  1.483 and maxDD widened -2.8% -> -6.6%: worse and more believable,
+  exactly the direction expected when a real risk channel stops being
+  assumed away.
+- Independently audited at a deliberately higher bar (a SECOND clean
+  sweep warrants more scrutiny, not less): two from-scratch engine
+  reimplementations, ~220k bootstrap paths across 10 seed/path-count
+  combos, adversarial per-bar-noise perturbation at 11 real hedged
+  bars, and hand-computation of the FTX-window trades from raw CSVs.
+  CONFIRMED, and it caught two precision errors in my own write-up,
+  both recorded in HYPOTHESES.md rather than papered over:
+  1. Trade TIMING is not exactly unchanged vs v1 (count is): one BTC
+     entry shifts 2021-07-02 -> 07-03, because 2021-07-01 is a genuine
+     one-day hole in Binance's perp-mark archive landing exactly on the
+     day the entry threshold first crossed, and v2's decision gate
+     needs BOTH legs valid. Data-availability effect, NOT price-driven
+     (price levels never touch entry/exit) -- 1/140 trades, 0.008% of
+     BTC funding attribution.
+  2. Gap-day docstring said "zero P&L"; in fact only the PRICE leg is
+     zeroed, funding still accrues on a held position (deliberate --
+     the funding print is real, the hole is in the mark archive). 10
+     instances, +0.0024 raw funding, ~0.11% of total. Docstring
+     corrected; no behavior changed; run re-verified byte-identical.
+- FTX-collapse window, hand-verified: BTC hedged 11-08->11-10 LOST
+  0.52% on realized basis; SOL hedged 11-07->11-09 GAINED 0.47% (its
+  perp fell harder than spot, and this position is short the perp);
+  ETH not hedged. One helped, one hurt -- not uniformly flattering.
+  Note SOL had already exited before 11-09, the worst dislocation day,
+  so the mechanism did not actually sit through the worst moment --
+  timing luck on this occasion, not a demonstrated property.
+- Tests at close: test_e19.py 13/13; phase2_e19v2.py byte-for-byte
+  reproducible; phase2_e19.py (v1) still reproduces its own log.
+
+## Single next action (2026-07-26)
+
+E19-v2 has cleared every registered gate with a genuinely falsifiable
+attribution gate, real basis data, and an independent audit at an
+elevated bar. The remaining gap is no longer modeling -- it is
+execution realism. **The single blocking next step is paper/shadow
+exposure** (daily signal + both legs logged, sized as edge measurement
+not capital), because the backtest is daily-close granularity and
+models none of: intraday perp liquidation mechanics, funding-settlement
+timing risk, spot-borrow/margin constraints, or exchange/counterparty
+risk. Precedent for exactly this step exists in-repo: E4-v2 went to a
+90-day Phase 4 shadow before any capital discussion, and that shadow is
+still accruing (~2026-10-14). A vol-targeted / capital-efficiency
+sizing variant is explicitly NOT registered (E19-v3 territory, E4->E4-v2
+precedent). Untouched and still standing on their own tracks: the PB4
+reconciliation blocker (2026-07-24b), the wider-alt-universe option for
+E17-v2, the FundedNext deployment-structure re-expression, and the
+Bitcoin spot-ETF-flow signal (still needs a data pipeline built).
 
 ## Single next action (2026-07-25c)
 
