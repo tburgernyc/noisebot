@@ -1,0 +1,308 @@
+//@version=6
+// =============================================================================
+// E19-v2 - Delta-neutral perpetual funding-rate harvest (VISUALIZATION)
+// Long spot + short perp, held while trailing funding is favorable.
+// =============================================================================
+//
+// READ THIS FIRST - what this script is and is NOT:
+//
+// This is a VISUALIZATION of the E19-v2 mechanism registered and evaluated in
+// the noisebot repo (HYPOTHESES.md, 2026-07-26, PASS 7/7). It is NOT the
+// registered evaluation and its numbers will NOT match it. Two reasons:
+//
+//   1. NO FUNDING DATA ON TRADINGVIEW. The real evaluation uses Binance's
+//      actual historical 8h funding prints (226 monthly archives). TradingView
+//      exposes no such series, so this script DERIVES a funding proxy from the
+//      perp-vs-spot premium using Binance's published funding formula:
+//          funding_8h = premium + clamp(interest - premium, +/-clamp)
+//      That relationship is mechanically correct, but a daily-close premium is
+//      a much noisier estimator than the real prints. Treat the funding line
+//      as indicative, not exact.
+//
+//   2. THE STRATEGY TESTER CANNOT P&L A TWO-LEG HEDGE. Pine strategies trade
+//      the charted symbol only. So the built-in Strategy Tester below shows
+//      the NAKED SHORT PERP leg in isolation -- which is hypothesis E7, the
+//      version that FAILED (the unhedged directional loss swamped real funding
+//      income). That is deliberate and useful: compare it against the "Hedged
+//      equity" curve this script plots, which is the actual delta-neutral
+//      strategy. The gap between those two lines IS the finding.
+//
+//      => IGNORE the Strategy Tester's net-profit figure as a measure of this
+//         strategy. Read the plotted hedged-equity curve and the stats table.
+//
+// SETUP: chart BINANCE:BTCUSDT.P on the 1D timeframe. The spot/perp symbols
+// used for the logic are inputs (independent of what you chart), but the
+// strategy orders execute on the charted symbol, so chart the perp.
+//
+// STOP LOSS / TAKE PROFIT: the registered strategy has NEITHER. It exits on
+// the funding hysteresis band alone. Price-based stops are meaningless for a
+// market-neutral book (the legs cancel). The optional guards below are
+// therefore expressed on EPISODE P&L -- which for this strategy is really a
+// basis-dislocation stop, the risk that actually exists. They default OFF so
+// that what you see out of the box is the registered mechanism, unmodified.
+// =============================================================================
+
+strategy(
+     title                   = "E19-v2 · Delta-Neutral Funding Harvest",
+     shorttitle              = "E19-v2",
+     overlay                 = false,
+     initial_capital         = 10000,
+     default_qty_type        = strategy.percent_of_equity,
+     default_qty_value       = 100,
+     commission_type         = strategy.commission.percent,
+     commission_value        = 0.06,
+     pyramiding              = 0,
+     calc_on_every_tick      = false,
+     process_orders_on_close = false)
+
+// ----------------------------------------------------------------------------
+// Inputs
+// ----------------------------------------------------------------------------
+var string G_SYM  = "Instruments"
+var string G_FUND = "Funding model (proxy)"
+var string G_SIG  = "Signal — registered rules"
+var string G_CST  = "Costs"
+var string G_RISK = "Risk guards (NOT registered — default OFF)"
+var string G_VIZ  = "Display"
+
+spotSym = input.symbol("BINANCE:BTCUSDT",   "Spot leg (LONG)",  group = G_SYM)
+perpSym = input.symbol("BINANCE:BTCUSDT.P", "Perp leg (SHORT)", group = G_SYM,
+     tooltip = "Chart THIS symbol. Strategy orders execute on the charted symbol.")
+
+entryThr  = input.float(8.0, "Enter when trailing funding >  (% ann.)", step = 0.5, group = G_SIG)
+exitThr   = input.float(3.0, "Exit  when trailing funding <  (% ann.)", step = 0.5, group = G_SIG,
+     tooltip = "Registered primary cell: 8% / 3%. Registered plateau also tested 6/2 and 12/5 — all three were net positive.")
+lookbackD = input.int(3, "Funding lookback (days)", minval = 1, maxval = 30, group = G_SIG,
+     tooltip = "Fixed at 3 in the registered spec — not a tuning knob.")
+
+interestPct = input.float(0.01,  "Interest component per 8h (%)", step = 0.001, group = G_FUND)
+clampPct    = input.float(0.05,  "Interest/premium clamp per 8h (%)", step = 0.005, group = G_FUND)
+maxFundPct  = input.float(0.75,  "Exchange funding cap per 8h (%)", step = 0.05, group = G_FUND,
+     tooltip = "Binance caps funding per interval. Rarely binds.")
+
+spotFeeBps = input.float(10.0, "Spot fee + slippage per side (bps)", step = 0.5, group = G_CST)
+perpFeeBps = input.float(6.0,  "Perp fee + slippage per side (bps)", step = 0.5, group = G_CST,
+     tooltip = "Registered convention: 10bps spot, 6bps perp => ~32bps per full hedge cycle.")
+
+useStop = input.bool(false, "Unwind if episode P&L falls below", group = G_RISK)
+stopPct = input.float(2.0, "    … this loss (%)", step = 0.25, group = G_RISK,
+     tooltip = "Basis-dislocation stop. NOT part of the registered strategy.")
+useTP   = input.bool(false, "Unwind if episode P&L rises above", group = G_RISK)
+tpPct   = input.float(5.0, "    … this gain (%)", step = 0.25, group = G_RISK,
+     tooltip = "Carry strategies normally have no profit target. NOT registered.")
+
+showMarks = input.bool(true, "Show hedge markers on price chart", group = G_VIZ)
+showShade = input.bool(true, "Shade bars while hedged",           group = G_VIZ)
+showTable = input.bool(true, "Show stats table",                  group = G_VIZ)
+
+// ----------------------------------------------------------------------------
+// Data — both legs, no lookahead
+// ----------------------------------------------------------------------------
+spotC = request.security(spotSym, timeframe.period, close, lookahead = barmerge.lookahead_off)
+perpC = request.security(perpSym, timeframe.period, close, lookahead = barmerge.lookahead_off)
+
+bool dataOk = not na(spotC) and not na(perpC) and spotC > 0.0 and perpC > 0.0
+
+// ----------------------------------------------------------------------------
+// Funding proxy — Binance's own formula, applied to the daily premium
+// ----------------------------------------------------------------------------
+float interest8h = interestPct / 100.0
+float clampV     = clampPct    / 100.0
+float capV       = maxFundPct  / 100.0
+
+float premium = dataOk ? (perpC - spotC) / spotC : na
+
+float funding8h = na
+if not na(premium)
+    float adj = math.max(math.min(interest8h - premium, clampV), -clampV)
+    funding8h := math.max(math.min(premium + adj, capV), -capV)
+
+// annualized %: 3 funding intervals/day * 365
+float fundingAnnPct = na(funding8h) ? na : funding8h * 3.0 * 365.0 * 100.0
+float fundingTrail  = ta.sma(fundingAnnPct, lookbackD)
+
+// ----------------------------------------------------------------------------
+// State + accounting.  Mirrors the Python engine: decide at bar close, realize
+// P&L over the following bar. Long spot / short perp => price P&L is
+// (spot_ret - perp_ret), i.e. pure basis drift; funding accrues to the short.
+// ----------------------------------------------------------------------------
+var bool  hedged     = false
+var float eq         = 1.0      // hedged-book equity, starts at 1.0
+var float epPnl      = 0.0      // current episode P&L (additive, like ep_ret)
+var float pendCost   = 0.0      // cost booked at last decision, charged next bar
+var float peakEq     = 1.0
+var float maxDD      = 0.0
+var int   nEpisodes  = 0
+var int   nWins      = 0
+var float grossWin   = 0.0
+var float grossLoss  = 0.0
+var float cumFunding = 0.0
+var float cumBasis   = 0.0
+var float cumCosts   = 0.0
+
+float spotRet = dataOk and not na(spotC[1]) and spotC[1] > 0.0 ? spotC / spotC[1] - 1.0 : 0.0
+float perpRet = dataOk and not na(perpC[1]) and perpC[1] > 0.0 ? perpC / perpC[1] - 1.0 : 0.0
+
+bool carried = na(hedged[1]) ? false : hedged[1]
+
+// --- realize the P&L of the decision made on the previous bar ---
+float basisPnl = carried ? (spotRet - perpRet) : 0.0
+float fundPnl  = carried and not na(funding8h) ? funding8h * 3.0 : 0.0
+float stepPnl  = basisPnl + fundPnl - pendCost
+
+cumFunding += fundPnl
+cumBasis   += basisPnl
+cumCosts   += pendCost
+pendCost   := 0.0
+
+eq := eq * (1.0 + stepPnl)
+if carried
+    epPnl += stepPnl
+
+peakEq := math.max(peakEq, eq)
+float ddNow = eq / peakEq - 1.0
+maxDD := math.min(maxDD, ddNow)
+
+// --- decide this bar ---
+bool prevHedged = hedged
+bool guardStop  = hedged and useStop and epPnl <= -stopPct / 100.0
+bool guardTP    = hedged and useTP   and epPnl >=  tpPct  / 100.0
+
+if dataOk and not na(fundingTrail)
+    if not hedged and fundingTrail > entryThr
+        hedged := true
+    else if hedged and (fundingTrail < exitThr or guardStop or guardTP)
+        hedged := false
+
+bool openedNow = hedged and not prevHedged
+bool closedNow = not hedged and prevHedged
+
+float cycleCost = (spotFeeBps + perpFeeBps) / 10000.0
+if openedNow
+    pendCost := cycleCost
+    epPnl    := 0.0
+if closedNow
+    // exit cost is attributed to the episode being closed, then charged to
+    // equity on the next bar (same convention as the entry cost)
+    pendCost := cycleCost
+    epPnl    -= cycleCost
+    nEpisodes += 1
+    if epPnl > 0.0
+        nWins += 1
+        grossWin += epPnl
+    else
+        grossLoss += -epPnl
+
+// ----------------------------------------------------------------------------
+// Webhook alert payloads — two legs, because execution needs two orders
+// ----------------------------------------------------------------------------
+string tstamp = str.format_time(time_close, "yyyy-MM-dd HH:mm", "UTC")
+
+string openMsg = '{"strategy":"E19-v2","action":"OPEN_HEDGE"' +
+     ',"spot":{"side":"BUY","symbol":"'  + spotSym + '"}' +
+     ',"perp":{"side":"SELL","symbol":"' + perpSym + '"}' +
+     ',"funding_ann_pct":' + str.tostring(nz(fundingTrail), "#.##") +
+     ',"time_utc":"' + tstamp + '"}'
+
+string closeMsg = '{"strategy":"E19-v2","action":"CLOSE_HEDGE"' +
+     ',"spot":{"side":"SELL","symbol":"' + spotSym + '"}' +
+     ',"perp":{"side":"BUY","symbol":"'  + perpSym + '"}' +
+     ',"funding_ann_pct":' + str.tostring(nz(fundingTrail), "#.##") +
+     ',"episode_pnl_pct":' + str.tostring(epPnl * 100.0, "#.###") +
+     ',"reason":"' + (guardStop ? "basis_stop" : guardTP ? "target" : "funding_below_exit") + '"' +
+     ',"time_utc":"' + tstamp + '"}'
+
+// Strategy orders = PERP LEG ONLY (see header). This is what makes the
+// Strategy Tester show the unhedged E7-style result for contrast.
+if openedNow
+    strategy.entry("PERP_SHORT", strategy.short, alert_message = openMsg)
+if closedNow
+    strategy.close("PERP_SHORT", alert_message = closeMsg)
+
+if openedNow
+    alert(openMsg, alert.freq_once_per_bar_close)
+if closedNow
+    alert(closeMsg, alert.freq_once_per_bar_close)
+
+// ----------------------------------------------------------------------------
+// Plots
+// ----------------------------------------------------------------------------
+// Own pane: the TRUE hedged equity + the funding signal
+plot(eq, "Hedged equity (this is the real strategy)", color = color.new(color.teal, 0), linewidth = 2)
+hline(1.0, "Start", color = color.new(color.gray, 60), linestyle = hline.style_dotted)
+
+plot(fundingTrail, "Trailing funding (% ann.)", color = color.new(color.orange, 0),
+     linewidth = 1, display = display.data_window)
+plot(fundingAnnPct, "Funding, per-bar (% ann.)", color = color.new(color.orange, 70),
+     linewidth = 1, display = display.data_window)
+
+// Price chart: episode markers + shading
+plotshape(showMarks and openedNow, title = "Open hedge", style = shape.triangleup,
+     location = location.belowbar, color = color.new(color.teal, 0), size = size.tiny,
+     text = "HEDGE", textcolor = color.new(color.teal, 0), force_overlay = true)
+plotshape(showMarks and closedNow and not guardStop and not guardTP, title = "Unwind (funding)",
+     style = shape.triangledown, location = location.abovebar, color = color.new(color.gray, 0),
+     size = size.tiny, text = "FLAT", textcolor = color.new(color.gray, 0), force_overlay = true)
+plotshape(showMarks and closedNow and guardStop, title = "Unwind (basis stop)",
+     style = shape.xcross, location = location.abovebar, color = color.new(color.red, 0),
+     size = size.tiny, text = "STOP", textcolor = color.new(color.red, 0), force_overlay = true)
+plotshape(showMarks and closedNow and guardTP, title = "Unwind (target)",
+     style = shape.circle, location = location.abovebar, color = color.new(color.lime, 0),
+     size = size.tiny, text = "TP", textcolor = color.new(color.lime, 0), force_overlay = true)
+
+bgcolor(showShade and hedged ? color.new(color.teal, 92) : na, title = "Hedged",
+     force_overlay = true)
+
+// ----------------------------------------------------------------------------
+// Stats table — computed here, NOT from the (misleading) Strategy Tester
+// ----------------------------------------------------------------------------
+if showTable and barstate.islast
+    var table t = table.new(position.top_right, 2, 12,
+         border_width = 1, border_color = color.new(color.gray, 70))
+    float pf = grossLoss > 0.0 ? grossWin / grossLoss : na
+    float wr = nEpisodes > 0 ? nWins / nEpisodes * 100.0 : na
+
+    table.cell(t, 0, 0, "E19-v2 (proxy funding)", text_color = color.white,
+         bgcolor = color.new(color.teal, 40), text_size = size.small)
+    table.cell(t, 1, 0, hedged ? "HEDGED" : "FLAT", text_size = size.small,
+         text_color = color.white, bgcolor = hedged ? color.new(color.teal, 40) : color.new(color.gray, 40))
+
+    table.cell(t, 0, 1, "Trailing funding", text_size = size.small)
+    table.cell(t, 1, 1, str.tostring(nz(fundingTrail), "#.##") + "%", text_size = size.small,
+         text_color = nz(fundingTrail) > entryThr ? color.teal : color.gray)
+
+    table.cell(t, 0, 2, "Band (enter / exit)", text_size = size.small)
+    table.cell(t, 1, 2, str.tostring(entryThr, "#.#") + "% / " + str.tostring(exitThr, "#.#") + "%",
+         text_size = size.small)
+
+    table.cell(t, 0, 3, "Hedged equity", text_size = size.small)
+    table.cell(t, 1, 3, str.tostring(eq, "#.####") + "x", text_size = size.small,
+         text_color = eq >= 1.0 ? color.teal : color.red)
+
+    table.cell(t, 0, 4, "Total return", text_size = size.small)
+    table.cell(t, 1, 4, str.tostring((eq - 1.0) * 100.0, "#.##") + "%", text_size = size.small)
+
+    table.cell(t, 0, 5, "Max drawdown", text_size = size.small)
+    table.cell(t, 1, 5, str.tostring(maxDD * 100.0, "#.##") + "%", text_size = size.small,
+         text_color = color.red)
+
+    table.cell(t, 0, 6, "Episodes", text_size = size.small)
+    table.cell(t, 1, 6, str.tostring(nEpisodes), text_size = size.small)
+
+    table.cell(t, 0, 7, "Win rate", text_size = size.small)
+    table.cell(t, 1, 7, str.tostring(nz(wr), "#.#") + "%", text_size = size.small)
+
+    table.cell(t, 0, 8, "Profit factor", text_size = size.small)
+    table.cell(t, 1, 8, na(pf) ? "n/a" : str.tostring(pf, "#.##"), text_size = size.small)
+
+    table.cell(t, 0, 9, "Funding captured", text_size = size.small)
+    table.cell(t, 1, 9, str.tostring(cumFunding * 100.0, "#.##") + "%", text_size = size.small,
+         text_color = color.teal)
+
+    table.cell(t, 0, 10, "Basis drag (hedge slip)", text_size = size.small)
+    table.cell(t, 1, 10, str.tostring(cumBasis * 100.0, "#.##") + "%", text_size = size.small,
+         text_color = cumBasis >= 0.0 ? color.teal : color.red)
+
+    table.cell(t, 0, 11, "Costs paid", text_size = size.small)
+    table.cell(t, 1, 11, str.tostring(cumCosts * 100.0, "#.##") + "%", text_size = size.small,
+         text_color = color.red)
