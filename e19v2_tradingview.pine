@@ -58,12 +58,14 @@ strategy(
 // ----------------------------------------------------------------------------
 // Inputs
 // ----------------------------------------------------------------------------
-var string G_SYM  = "Instruments"
-var string G_FUND = "Funding model (proxy)"
-var string G_SIG  = "Signal — registered rules"
-var string G_CST  = "Costs"
-var string G_RISK = "Risk guards (NOT registered — default OFF)"
-var string G_VIZ  = "Display"
+// NOTE: no `var` here — input() group/tooltip args require `const string`,
+// and `var` would qualify these as simple/series and fail to compile.
+string G_SYM  = "Instruments"
+string G_FUND = "Funding model (proxy)"
+string G_SIG  = "Signal — registered rules"
+string G_CST  = "Costs"
+string G_RISK = "Risk guards (NOT registered — default OFF)"
+string G_VIZ  = "Display"
 
 spotSym = input.symbol("BINANCE:BTCUSDT",   "Spot leg (LONG)",  group = G_SYM)
 perpSym = input.symbol("BINANCE:BTCUSDT.P", "Perp leg (SHORT)", group = G_SYM,
@@ -143,7 +145,9 @@ var float cumCosts   = 0.0
 float spotRet = dataOk and not na(spotC[1]) and spotC[1] > 0.0 ? spotC / spotC[1] - 1.0 : 0.0
 float perpRet = dataOk and not na(perpC[1]) and perpC[1] > 0.0 ? perpC / perpC[1] - 1.0 : 0.0
 
-bool carried = na(hedged[1]) ? false : hedged[1]
+// v6: bool is non-nullable and history before the first bar reads as false,
+// so no na-guard is needed (and na() rejects series bool in v6).
+bool carried = hedged[1]
 
 // --- realize the P&L of the decision made on the previous bar ---
 float basisPnl = carried ? (spotRet - perpRet) : 0.0
