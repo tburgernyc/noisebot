@@ -14,6 +14,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+import risk_gates as rg
 import term_structure as ts
 
 
@@ -82,7 +83,31 @@ def run_book(signal_me: pd.DataFrame, daily_ret: pd.DataFrame,
     net = (gross - costs).dropna()
 
     return dict(net=net, legw=legw, w_daily=w_daily, w_scaled=w_scaled,
-                daily_ret=dr, bps=bps_per_side)
+                daily_ret=dr, bps=bps_per_side,
+                target_vol=target_vol, gross_cap=gross_cap)
+
+
+def cap_diagnostic(book: dict) -> dict:
+    """Style-A cap diagnostic for E9/E11/E12: is the gross_cap ceiling
+    silently suppressing realized vol below the registered target the way
+    it did for E12 (HYPOTHESES.md CAVEAT A), or clean the way it was found
+    for E9/E11 (audit_ruin_gate_e9_e11.py, 2026-07-29 -- this function
+    productizes that one-off script so a future E9/E11/E12-family
+    evaluation gets the check automatically instead of needing someone to
+    remember to run it by hand again).
+
+    Takes the dict run_book() already returns -- re-derives the same
+    unscaled-book / multiplier calculation vol_target_scale did internally
+    (cheap, deterministic, no randomness), it does not modify run_book or
+    change any of its existing keys.
+    """
+    w_daily, dr = book["w_daily"], book["daily_ret"]
+    gross_unscaled = (w_daily * dr).sum(axis=1)
+    mult = ts.vol_target_scale(gross_unscaled, book["target_vol"],
+                               gross_cap=book["gross_cap"])
+    ceiling = book["gross_cap"] / 2.0
+    binding = mult >= ceiling - 1e-9
+    return rg.cap_binding_report(binding, book["net"], book["target_vol"])
 
 
 def episode_pnl(book: dict) -> pd.Series:

@@ -10,8 +10,8 @@ test_e14.py on synthetic data.
 import numpy as np
 import pandas as pd
 from rebalance_threshold import load_es_zn, run_e14
+import risk_gates as rg
 
-RNG = np.random.default_rng(14)
 PLATEAU = (0.03, 0.04, 0.05)
 MAIN = 0.04
 
@@ -24,13 +24,12 @@ def pf_halves(tr, col="pnl"):
 
 
 def boot_dd_dollars(pnl, thresh=2500.0, n_paths=10_000):
-    hits = 0
-    for _ in range(n_paths):
-        eq = np.cumsum(RNG.choice(pnl, size=len(pnl), replace=True))
-        peak = np.maximum.accumulate(eq)
-        if (eq - peak).min() < -thresh:
-            hits += 1
-    return hits / n_paths
+    """Delegates to risk_gates.bootstrap_p_ruin (2026-07-29 consolidation --
+    see risk_gates.py docstring). Verified bit-identical to the prior
+    module-level-RNG(14) implementation on real E14 data before this swap
+    (regression_risk_gates.py)."""
+    return rg.bootstrap_p_ruin(pnl, threshold=thresh, n_paths=n_paths,
+                               seed=14, mode="additive")
 
 
 if __name__ == "__main__":

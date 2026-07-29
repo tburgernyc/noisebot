@@ -22,6 +22,8 @@ import re
 import numpy as np
 import pandas as pd
 
+import risk_gates as rg
+
 # CME month codes -> calendar month number
 MONTH_CODES = {
     "F": 1, "G": 2, "H": 3, "J": 4, "K": 5, "M": 6,
@@ -259,17 +261,10 @@ def max_drawdown(equity: pd.Series) -> float:
 
 def bootstrap_p_maxdd(ret: pd.Series, threshold: float = 0.40,
                       n_paths: int = 10000, seed: int = 0) -> float:
-    """P(maxDD > threshold) via i.i.d. daily-return resample, full length."""
-    r = ret.dropna().to_numpy()
-    if len(r) == 0:
-        return 1.0
-    rng = np.random.default_rng(seed)
-    hits = 0
-    n = len(r)
-    for _ in range(n_paths):
-        samp = rng.choice(r, size=n, replace=True)
-        eq = np.cumprod(1.0 + samp)
-        dd = (eq / np.maximum.accumulate(eq) - 1.0).min()
-        if -dd > threshold:
-            hits += 1
-    return hits / n_paths
+    """P(maxDD > threshold) via i.i.d. daily-return resample, full length.
+    Delegates to risk_gates.bootstrap_p_ruin (2026-07-29 consolidation --
+    see risk_gates.py docstring). Verified bit-identical to the prior
+    standalone implementation on real E9 data before this swap
+    (regression_risk_gates.py). Name/signature/defaults unchanged."""
+    return rg.bootstrap_p_ruin(ret, threshold=threshold, n_paths=n_paths,
+                               seed=seed, mode="compound")

@@ -7,6 +7,8 @@ import json
 import numpy as np
 import pandas as pd
 
+import risk_gates as rg
+
 SLIP, FEE = 0.0010, 0.0035
 
 
@@ -58,14 +60,13 @@ def max_dd(eq: np.ndarray) -> float:
 
 
 def boot_p_dd(daily: pd.Series, thresh=0.40, n_paths=10_000, seed=7) -> float:
-    rng = np.random.default_rng(seed)
-    r = daily.values
-    hits = 0
-    for _ in range(n_paths):
-        eq = np.cumprod(1 + rng.choice(r, size=len(r), replace=True))
-        if max_dd(eq) < -thresh:
-            hits += 1
-    return hits / n_paths
+    """Delegates to risk_gates.bootstrap_p_ruin (2026-07-29 consolidation --
+    see risk_gates.py docstring). Verified bit-identical to the prior
+    standalone implementation on real E4-v2 data before this swap
+    (regression_risk_gates.py). Name/signature/defaults unchanged so every
+    existing phase2_*.py call site needs no edit."""
+    return rg.bootstrap_p_ruin(daily, threshold=thresh, n_paths=n_paths,
+                               seed=seed, mode="compound")
 
 
 def run_e4_voltarget(df: pd.DataFrame, lookback: int = 28,

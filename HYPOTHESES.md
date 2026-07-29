@@ -858,6 +858,75 @@ number at the registered target, not a suppressed-vol illusion. E11's
 FAIL verdict is unaffected (already failed on 2 other gates); this only
 confirms the ruin-gate figure on the record is trustworthy as reported.
 
+## INFRA NOTE — 2026-07-29: ruin-gate bootstrap consolidated into risk_gates.py; automatic cap-binding diagnostic added
+
+NOT a hypothesis. Disclosure of a change to SHARED EVALUATION MACHINERY,
+following the precedent set by the E12 episode_pnl bps fix (gate-audit
+2026-07-24: a non-parameter correctness fix to shared code, disclosed,
+E12 NOT re-run). No registered parameter, threshold, window, or seed
+changed for any hypothesis; no verdict changed for any hypothesis.
+
+WHAT PROMPTED IT: the two ruin-gate audits immediately above (E9/E11,
+this same session) found the underlying bootstrap-probability logic was
+independently reimplemented FOUR times across this repo
+(crypto_trend.boot_p_dd — E4/E4-v2/E6/E7/E16/E17/E17-v2/E19/E19-v2;
+term_structure.bootstrap_p_maxdd — E9/E11/E12; and boot_dd_dollars,
+copy-pasted between phase2_e5_e4v2.py [E5] and phase2_e14.py [E14]).
+Algorithmically identical (i.i.d. resample, walk the equity curve, check
+drawdown vs threshold) but drifting independently — the kind of
+duplication that let the E12 cap-suppression pattern go unchecked for
+E9/E11 until someone happened to audit it by hand.
+
+WHAT CHANGED:
+- New module risk_gates.py: ONE canonical bootstrap_p_ruin(mode="compound"
+  | "additive", seed, threshold, n_paths) covering all four historical
+  behaviors, plus cap_binding_report() — a reusable version of the exact
+  diagnostic audit_ruin_gate_e9_e11.py ran by hand for E9/E11 above.
+- crypto_trend.boot_p_dd, term_structure.bootstrap_p_maxdd, and both
+  boot_dd_dollars copies (phase2_e5_e4v2.py, phase2_e14.py) are now thin
+  delegating wrappers to risk_gates.bootstrap_p_ruin — SAME name,
+  signature, and defaults at every one of those four call sites, so
+  every OTHER phase2_*.py driver that calls them (phase2_e4.py,
+  phase2_e4v3_e6.py, phase2_e7.py, phase2_e16.py, phase2_e17.py,
+  phase2_e17v2.py, phase2_e19.py, phase2_e19v2.py) needed NO edit and
+  remains exactly as it was when each hypothesis was originally
+  evaluated.
+- The two module-level RNG objects (phase2_e5_e4v2.py's RNG=default_rng(7),
+  phase2_e14.py's RNG=default_rng(14)) are gone: each was only ever
+  called once per run (verified before this change), so the new
+  self-contained fresh-seed-per-call design reproduces the identical
+  first-draw sequence, while removing a latent cross-call-state-drift
+  bug class for any future second call in the same process.
+- Automatic cap-binding diagnostic wired into the two families where it's
+  cheap and safe to add without touching any frozen backtest function's
+  signature: termstructure_backtest.cap_diagnostic() (Style A — E9/E11/
+  E12's EWMA vol-target + gross_cap ceiling) and
+  risk_gates.single_asset_cap_diagnostic() (Style B — the single-asset
+  1x leverage ceiling shared identically by crypto_trend.run_e4_voltarget
+  [E4-v2] and e17_pivot_structure.run_backtest_voltarget [E17-v2]). A
+  third style (E6/E7's post-hoc Sigma|w|>1 pro-rata rescale) is
+  DELIBERATELY NOT auto-wired — see risk_gates.py's module docstring for
+  why and what a manual check would need.
+
+INTEGRITY VERIFICATION (before any call site was touched): risk_gates.py
+proven on synthetic fixtures (test_risk_gates.py, 20/20 checks — zero-vol
+never ruins, guaranteed-ruin cases, RNG determinism, no cross-call RNG
+drift, NaN handling, both cap-diagnostic styles including a no-lookahead
+truncation check). Then regression_risk_gates.py re-ran all four (mode,
+seed) combinations against REAL data (E4-v2, E5, E14, E9) and confirmed
+BIT-IDENTICAL output between the old standalone implementations and the
+new shared function before any file was edited. After editing, every
+edited wrapper was re-checked against real data a second time (E4-v2
+0.0012, E5 0.8681, E14 0.0434, E9 0.8449 — all match prior recordings
+exactly), and the two new cap-diagnostic wirings were checked against
+the E9/E11 audit numbers immediately above (E9 0.330/14.5%, E11
+0.259/14.8% — exact match). Full existing test suite (test_signals.py
+through test_e19.py, 15 files) re-run afterward: all green.
+
+Files: risk_gates.py, test_risk_gates.py, regression_risk_gates.py (new);
+crypto_trend.py, term_structure.py, termstructure_backtest.py,
+phase2_e5_e4v2.py, phase2_e14.py (edited).
+
 ---
 
 ## E12 — REGISTERED 2026-07-23 (pre-test): FX carry via futures term structure (cross-sectional, monthly)

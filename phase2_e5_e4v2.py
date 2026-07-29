@@ -5,8 +5,7 @@ import pandas as pd
 from rebalance import load_es_zn, run_e5
 from crypto_trend import (load_yahoo_daily, run_e4_voltarget, sharpe,
                           max_dd, boot_p_dd)
-
-RNG = np.random.default_rng(7)
+import risk_gates as rg
 
 
 def pf_halves(tr, col="pnl"):
@@ -17,13 +16,15 @@ def pf_halves(tr, col="pnl"):
 
 
 def boot_dd_dollars(pnl, thresh=2500.0, n_paths=10_000):
-    hits = 0
-    for _ in range(n_paths):
-        eq = np.cumsum(RNG.choice(pnl, size=len(pnl), replace=True))
-        peak = np.maximum.accumulate(eq)
-        if (eq - peak).min() < -thresh:
-            hits += 1
-    return hits / n_paths
+    """Delegates to risk_gates.bootstrap_p_ruin (2026-07-29 consolidation --
+    see risk_gates.py docstring). Verified bit-identical to the prior
+    module-level-RNG(7) implementation on real E5 data before this swap
+    (regression_risk_gates.py). The old module-level RNG object is gone --
+    this was only ever called once per run, so the fresh-seed-per-call
+    design here reproduces the identical first-draw sequence, and removes
+    the latent cross-call-drift risk that pattern carried."""
+    return rg.bootstrap_p_ruin(pnl, threshold=thresh, n_paths=n_paths,
+                               seed=7, mode="additive")
 
 
 if __name__ == "__main__":
