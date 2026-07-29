@@ -1111,3 +1111,145 @@ matter at retail) are both dead. No third variant, no band search, no hold
 search, ever.
 Window ledger: es_zn_1d.csv 2010-06→2026-07 second registered use consumed
 (disclosed at registration). No Databento spend.
+
+## E15 — REGISTERED 2026-07-29 (pre-test, BLOCKED — no data source): Tokenized-equity vs cash-equity oracle basis mean-reversion (single-name)
+
+Provenance: brought by Tim from an external Claude Code session (separate
+project, ~/tokenized-oracle-divergence/) that built a complete Pine Script
+v6 TradingView strategy against a "Coding LLM Build Package" spec
+(DOC 0-10). NOT sourced from noisebot's own research pipeline — no
+adversarial deep-research sweep has vetted this mechanism the way
+E9/E11/E12 or E14's seed candidates were. The .pine file has NEVER been
+compiled or backtested (no offline Pine compiler exists); it is a
+reasoned draft, not a verified one, per its own header disclaimer.
+
+EXPLICIT FREEZE OVERRIDE (constitution-required note — flagged before
+registering, not silently bypassed): STATE.md's 2026-07-24b close
+explicitly declared "no new discovery registrations (edge well is dry —
+manufacturing more would be padding/p-hacking)," with the stated next
+action being Tim's PB4 decision, not new discovery. Tim explicitly asked
+to register THIS hypothesis in this session (2026-07-29) despite that
+freeze, after being shown both the freeze note and the infra gap below.
+Recorded here so the freeze is not silently contradicted: this is a
+DIRECT, ONE-OFF OVERRIDE for this entry, not a resumption of general
+discovery activity. The freeze otherwise stands.
+
+Economic rationale (why the edge should exist in microstructure terms):
+tokenized-equity products (an on-chain proxy tracking a real-exchange
+stock, e.g. a tokenized-AAPL token) trade on 24/5 or 24/7 crypto-style
+venues with fragmented liquidity and market-maker inventory/latency risk,
+while the underlying cash equity trades on a continuous-NBBO exchange
+only during RTH. The wrapper has no real-time arbitrage mechanism forcing
+price equality outside the cash market's hours or during thin
+tokenized-venue liquidity — the basis (token price vs a same/prior-bar
+cash-equity oracle) should drift on token-side order flow alone and
+mean-revert once real price discovery resumes (RTH open) or once
+tokenized-venue liquidity normalizes. This is a wrapper/ADR/closed-end-
+fund-premium-style convergence trade, not price momentum,
+calendar/threshold rebalancing flow, funding-rate carry, term-structure
+roll, or CoT positioning — mechanistically DISTINCT from all ten
+falsified families and from marginal E12 (FX carry via futures term
+structure). No correlation-vs-prior-family check is possible here (no
+overlapping price series exists with anything already tested in this
+repo).
+
+Rules (ALL fixed before any run — defaults exactly as shipped in the
+referenced .pine file, never tuned or backtested):
+- Chart symbol: tokenized-equity proxy, single name (spec default pairs
+  it with NASDAQ:AAPL as the oracle). Oracle: input.symbol, default
+  NASDAQ:AAPL, request.security same-timeframe with lookahead_off +
+  confirmed-prior-bar close[1] default; daily HTF oracle+token via
+  close[1] paired with lookahead_on (documented non-repaint HTF idiom).
+- Spread: spread_pct = (token_close − oracle_close) / oracle_close * 100.
+- Signal: rolling PERCENTILE RANK of spread over a 100-PRINT window
+  (oracle-print-gated, not bar-gated — closed-market bars excluded from
+  the reference distribution). Long when rank <= 10; short when
+  rank >= 90 (signalMode = "Percentile", the registered primary; ZScore
+  and "Both" modes exist in the file but are NOT part of this
+  registration — a separate registration would be required to test them).
+- Exit: directional reversion (long exits once rank climbs back >= 40;
+  short once rank falls back <= 60), OR max 240 bars in trade, OR ATR
+  stop = entry-snapshot ATR(14) x 2.5, fixed (not trailing).
+- Filters (all ON by default, all required to fire): RTH session gate
+  09:30–16:00 America/New_York; ADX(14,14) < 25 regime filter; daily HTF
+  token-vs-oracle spread must agree in sign with the trade direction;
+  oracle must have moved on the current bar (not mid-multi-bar-stale
+  tolerance) AND be within 5 consecutive stale bars; equity-curve filter
+  (equity >= EMA20 of equity); daily loss circuit −5%.
+- Sizing: PATH B only — strategy.fixed qty in shares =
+  floor(equity * effectivePct / 100 / close), base 10% of equity per
+  trade, cut to 5% after 3 consecutive losses (sizeCutPct=50%, floored at
+  95% max cut). Kelly cap OFF for v1 (useKelly=false).
+- Costs: commission 0.05% (explicitly a RESEARCH FLOOR per the file's own
+  header — noisebot's usual $2.50/ct RT / per-contract-multiplier
+  convention DOES NOT APPLY here; this is share-based, not futures-based.
+  A 0.30%+ re-run is required before any pass is trusted, per the file's
+  own cost note), slippage 1 tick, margin 100% (cash-like).
+- Registered plateau (ALL must be net positive, never best-of):
+  entryPercentile in {5, 10, 15}. lookback (print-count window) NOT swept
+  in this registration — fixed at 100 prints.
+
+Gates (Phase-2-standard set, adapted to shares/percent instead of
+contracts/dollars): n >= 100 trades; PF > 1.3; both sample halves
+(calendar time) net positive; entryPercentile plateau {5,10,15} all
+positive; barrier-MC P(maxDD > 40% of equity) < 10% at the registered
+sizing (buffer-aware, WR assumed 5pts below backtest per constitution
+non-negotiable #5).
+
+Prediction if TRUE: PF > 1.3 on n >= 100 trades net of 0.05% costs (AND
+the strategy must still show a positive-PF signature, even if smaller, at
+the 0.30% stress commission per the file's own cost note); both halves
+positive; entryPercentile plateau all positive; ruin gate < 10%.
+FALSIFIED if ANY gate fails, OR if the edge only survives at the
+unrealistic 0.05% commission floor and dies at 0.30% (sub-friction death,
+same signature as E5/E7/E11).
+
+Registered priors-against (real risks specific to this entry):
+(a) NEVER COMPILED OR RUN — the .pine file has zero verified backtest
+history; a Python port could inherit the same untested mechanical risk,
+or could diverge from Pine's actual (still-unverified) runtime behavior,
+making any Python-side "pass" partially uninformative about the Pine
+strategy as shipped;
+(b) tokenized-equity products are a NEW, thin market — real historical
+price history may be short (months, not years) and illiquid outside a
+handful of names, so n >= 100 may be structurally unreachable within any
+honest window, same failure mode as E14's ~1 trade/yr;
+(c) STRUCTURAL RISK NOT MODELED BY ANY PRICE BACKTEST: token
+redemption/oracle-desync/custody risk is real and can produce a
+"profitable" backtest on a feed that periodically decouples from reality
+without warning — the .pine file's own risk disclaimer says the same
+thing. A statistical PASS here would NOT by itself justify capital;
+(d) commission/slippage realism for tokenized venues is genuinely unknown
+(no fee schedule verified) — the 0.30% stress figure in the .pine file is
+a guess, not a sourced venue fee.
+
+Machinery-first (constitution/skill precedent, NOT yet done): before ANY
+run, a pure-logic Python port of the signal (percentile-rank engine,
+oracle-print gating, HTF agreement, ATR-snapshot stop, directional revert
+exit) matching noise_area.py's "no I/O, no broker code" convention would
+need to be written and unit-tested on SYNTHETIC data (no-lookahead,
+no-repaint, correct rank/z, correct oracle-print exclusion) BEFORE any
+real window is touched. NOT STARTED.
+
+DATA WINDOW: **UNRESOLVED / BLOCKED.** No tokenized-equity data source
+exists anywhere in this repo. Databento (this repo's paid vendor) is a
+CME/futures/commodities vendor and does not carry tokenized-equity data.
+noise_area.py's loader contract (single-instrument tz-aware NY OHLCV) also
+does not fit — this strategy needs TWO synchronized feeds (tokenized
+token + real equity oracle). No window is claimed, proposed, or burned by
+this registration. This hypothesis CANNOT be evaluated until (1) a
+tokenized-equity price source is identified and licensed/pulled, (2) a
+loader is built and tested, and (3) the machinery-first port above is
+done. Each of those is a separate, explicit future task.
+
+Decision rule: this entry is registered for the RECORD ONLY, per Tim's
+explicit instruction this session, overriding the discovery freeze for
+this one case. NO CODE RUNS as a result of this registration — running
+the test remains a separate, explicit future instruction
+(register-hypothesis skill convention), and is additionally gated on
+resolving the DATA WINDOW and MACHINERY-FIRST blockers above, neither of
+which this session attempted. On eventual PASS: candidate sleeve -> Phase
+4 shadow (adapted, as E4-v2/E14 were), never straight to capital. On
+eventual FAIL: recorded and abandoned, no retune, no threshold search.
+
+Window ledger: N/A — no data pulled, no Databento spend, nothing burned.
