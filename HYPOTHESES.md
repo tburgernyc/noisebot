@@ -736,6 +736,24 @@ Window ledger: commodity daily ladders (14 GLBX roots) 2010-06→2026-06
 evaluation #1 CONSUMED (burned). E11 shares this price window — a
 disclosed second registered use (positioning signal, not price).
 
+#### 2026-07-29 — E9 RUIN-GATE CAP-BINDING AUDIT (E12-precedent check)
+Prompted by the E12 gate-auditor finding that its ruin-gate PASS was a
+gross-cap Σ|w|≤2.0 artifact (cap bound 96.6% of days, suppressing realized
+vol to 7.4% vs the registered 15% target — see E12's CAVEAT A). Neither E9
+nor E11 had been checked for the same distortion until now. Audit script:
+audit_ruin_gate_e9_e11.py (imports term_structure.py/
+termstructure_backtest.py unchanged, identical registered parameters —
+this re-derives an internal diagnostic, it does not re-evaluate or alter
+any gate).
+VERDICT: **CLEAN — artifact does NOT reproduce.** Cap at ceiling only
+33.0% of days (vs E12's 96.6%); realized annualized vol 14.5%, essentially
+AT the 15% target (vs E12's 7.4%). Commodity vol runs structurally higher
+than calm FX carry, so the cap rarely needs to bind to hit target. The
+reported P(maxDD>40%)=0.845 is NOT a suppressed-vol illusion — it is the
+real number at the registered target. E9's FAIL verdict is unaffected and
+was never in question (5 other gates already failed); this only confirms
+the specific ruin-gate figure on the record is trustworthy as reported.
+
 ---
 
 ## E11 — REGISTERED 2026-07-23 (pre-test): Commodity hedger-positioning pressure (CFTC CoT, cross-sectional)
@@ -828,6 +846,17 @@ corr(E9) pass means E11 is INDEPENDENTLY dead, not redundant with E9.
 Window ledger: commodity price window 2010-06→2026-06 second (final)
 registered use consumed (disclosed at registration); CoT positioning
 2010-2026 evaluation #1 burned.
+
+#### 2026-07-29 — E11 RUIN-GATE CAP-BINDING AUDIT (E12-precedent check)
+Same check as E9's, same script (audit_ruin_gate_e9_e11.py), same E12-
+precedent motivation — see E9's audit note immediately above for full
+rationale.
+VERDICT: **CLEAN — artifact does NOT reproduce.** Cap at ceiling 25.9% of
+days (vs E12's 96.6%); realized annualized vol 14.8%, essentially AT the
+15% target (vs E12's 7.4%). The reported P(maxDD>40%)=0.766 is the real
+number at the registered target, not a suppressed-vol illusion. E11's
+FAIL verdict is unaffected (already failed on 2 other gates); this only
+confirms the ruin-gate figure on the record is trustworthy as reported.
 
 ---
 
